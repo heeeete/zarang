@@ -10,6 +10,7 @@ import { Badge } from '@/src/shared/ui/badge';
 import { CATEGORIES } from '@/src/features/post-creation/model/schema';
 import { LikeButton } from '@/src/features/like-post/ui/LikeButton';
 import { CommentInput } from '@/src/features/comment-post/ui/CommentInput';
+import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 
 interface PostDetailsPageProps {
   params: {
@@ -17,17 +18,24 @@ interface PostDetailsPageProps {
   };
 }
 
+/**
+ * 게시글 상세 페이지 컴포넌트입니다 (서버 컴포넌트).
+ * 게시글 본문, 이미지 캐러셀, 좋아요/댓글 섹션을 포함합니다.
+ */
 export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
+  
+  // 로그인한 사용자의 정보를 가져옵니다 (좋아요 상태 확인용)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 게시글 정보, 작성자 정보, 이미지 목록, 좋아요 수, 댓글 목록을 한 번에 가져옵니다.
+  // 서버 측에서 이미지 순서(sort_order)와 댓글 순서(created_at)를 정렬합니다.
   const { data: post, error } = await supabase
     .from('posts')
-    .select(
-      `
+    .select(`
       *,
       author:profiles!posts_author_id_fkey(username, avatar_url),
       images:post_images(*),
@@ -36,18 +44,19 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         *,
         author:profiles!comments_author_id_fkey(username, avatar_url)
       )
-    `,
-    )
+    `)
     .eq('id', id)
     .is('deleted_at', null)
+    .order('sort_order', { foreignTable: 'post_images', ascending: true })
+    .order('created_at', { foreignTable: 'comments', ascending: false })
     .single();
 
   if (error || !post) {
-    console.error('Fetch post error:', error);
+    console.error('게시글 상세 정보 조회 실패:', error);
     notFound();
   }
 
-  // Check if current user liked
+  // 로그인된 경우 현재 사용자의 좋아요 여부를 확인합니다.
   let initialIsLiked = false;
   if (user) {
     const { data: likeData } = await supabase
@@ -59,127 +68,130 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
     initialIsLiked = !!likeData;
   }
 
-  // Sort images by sort_order
-  const sortedImages = [...(post.images || [])].sort((a, b) => a.sort_order - b.sort_order);
-
-  // Sort comments by created_at (latest first)
-  const sortedComments = [...(post.comments || [])].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  );
-
   const categoryLabel =
     CATEGORIES.find((cat) => cat.value === post.category)?.label || post.category;
 
   return (
-    <div className="flex min-h-full flex-col pb-20">
-      {/* 서브 헤더 */}
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-white/80 px-4 backdrop-blur-md">
+    <div className="flex min-h-full flex-col pb-20 bg-white">
+      {/* 상단 헤더: 뒤로가기 및 제목 표시 */}
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-white/90 px-4 backdrop-blur-md">
         <Button
           variant="ghost"
           size="icon"
           render={<Link href="/" />}
-          className="-ml-2"
+          className="-ml-2 hover:bg-transparent"
           nativeButton={false}
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
         <h2 className="max-w-[200px] truncate text-sm font-semibold">{post.title}</h2>
-        <Button variant="ghost" size="icon" className="-mr-2">
+        <Button variant="ghost" size="icon" className="-mr-2 hover:bg-transparent">
           <MoreVertical className="h-5 w-5" />
         </Button>
       </header>
 
-      {/* Image Carousel (Simplified for MVP) */}
-      <div className="scrollbar-hide flex w-full snap-x snap-mandatory overflow-x-auto">
-        {sortedImages.map((image) => (
+      {/* 이미지 캐러셀: 리사이징 최적화 적용 */}
+      <div className="scrollbar-hide flex w-full snap-x snap-mandatory overflow-x-auto bg-neutral-100">
+        {post.images?.map((image: any) => (
           <div
             key={image.id}
-            className="relative aspect-square min-w-full snap-center border-b bg-neutral-50"
+            className="relative aspect-square min-w-full snap-center border-b"
           >
             <Image
-              src={image.image_url}
+              src={getOptimizedImageUrl(image.image_url, 840) || ''}
               alt={post.title}
               fill
               className="object-contain"
               sizes="(max-width: 420px) 100vw, 420px"
+              priority
             />
           </div>
         ))}
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col gap-4 p-4">
+      {/* 게시글 본문 섹션 */}
+      <div className="flex flex-col gap-5 p-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted">
-              {post.author?.avatar_url && (
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-9 w-9 overflow-hidden rounded-full bg-muted border">
+              {post.author?.avatar_url ? (
                 <Image
-                  src={post.author.avatar_url}
+                  src={getOptimizedImageUrl(post.author.avatar_url, 64) || ''}
                   alt={post.author.username}
                   fill
                   className="object-cover"
                 />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-neutral-200 text-neutral-500 text-[10px]">
+                  프로필
+                </div>
               )}
             </div>
-            <span className="text-sm font-medium">{post.author?.username}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold">{post.author?.username}</span>
+              <span className="text-[11px] text-muted-foreground">
+                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ko })}
+              </span>
+            </div>
           </div>
-          <Badge variant="secondary">{categoryLabel}</Badge>
+          <Badge variant="secondary" className="px-2.5 py-0.5 font-medium">{categoryLabel}</Badge>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h1 className="text-xl leading-tight font-bold">{post.title}</h1>
+        <div className="flex flex-col gap-3">
+          <h1 className="text-2xl leading-tight font-extrabold tracking-tight">{post.title}</h1>
           {post.description && (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-neutral-700">
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-neutral-800">
               {post.description}
             </p>
           )}
-          <span className="text-[10px] text-muted-foreground">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ko })}
-          </span>
         </div>
 
-        {/* Interaction Bar */}
-        <div className="flex items-center gap-6 border-y py-3">
+        {/* 상호작용 바 (좋아요, 댓글 수 표시 및 동작) */}
+        <div className="flex items-center gap-6 border-y py-4 my-2">
           <LikeButton
             postId={id}
             initialLikeCount={post.likes?.[0]?.count || 0}
             initialIsLiked={initialIsLiked}
           />
           <div className="flex items-center gap-1.5 text-neutral-600">
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">{post.comments?.length || 0}</span>
+            <MessageCircle className="h-5.5 w-5.5" />
+            <span className="text-sm font-semibold">{post.comments?.length || 0}</span>
           </div>
         </div>
 
-        {/* Comments Section */}
-        <div className="mt-2 flex flex-col gap-4">
-          <h3 className="text-sm font-bold">댓글 {post.comments?.length || 0}</h3>
-          <div className="flex flex-col gap-4">
-            {sortedComments.length === 0 ? (
-              <p className="py-4 text-center text-xs text-muted-foreground">
-                첫 댓글을 남겨보세요!
-              </p>
+        {/* 댓글 섹션 */}
+        <div className="flex flex-col gap-5">
+          <h3 className="text-base font-bold">댓글 {post.comments?.length || 0}</h3>
+          <div className="flex flex-col gap-6">
+            {post.comments?.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-xs text-muted-foreground">아직 댓글이 없습니다. 첫 소감을 남겨주세요!</p>
+              </div>
             ) : (
-              sortedComments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
-                    {comment.author?.avatar_url && (
+              post.comments?.map((comment: any) => (
+                <div key={comment.id} className="flex gap-3.5">
+                  <div className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full bg-muted border">
+                    {comment.author?.avatar_url ? (
                       <Image
-                        src={comment.author.avatar_url}
+                        src={getOptimizedImageUrl(comment.author.avatar_url, 64) || ''}
                         alt={comment.author.username}
                         fill
                         className="object-cover"
                       />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400 text-[8px]">
+                        N
+                      </div>
                     )}
                   </div>
-                  <div className="flex flex-1 flex-col gap-1">
+                  <div className="flex flex-1 flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold">{comment.author?.username}</span>
+                      <span className="text-xs font-bold text-neutral-900">{comment.author?.username}</span>
                       <span className="text-[10px] text-muted-foreground">
                         {formatDistanceToNow(new Date(comment.created_at), { locale: ko })} 전
                       </span>
                     </div>
-                    <p className="text-xs leading-normal text-neutral-800">{comment.content}</p>
+                    <p className="text-[13px] leading-relaxed text-neutral-800">{comment.content}</p>
                   </div>
                 </div>
               ))
@@ -188,7 +200,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         </div>
       </div>
 
-      {/* Comment Input Sticky */}
+      {/* 댓글 입력창: 화면 하단에 고정 */}
       <CommentInput postId={id} />
     </div>
   );

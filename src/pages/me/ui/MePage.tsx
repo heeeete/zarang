@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { LogoutButton } from '@/src/features/auth/ui/LogoutButton'
 import { PostCard } from '@/src/entities/post/ui/PostCard'
+import { getOptimizedImageUrl } from '@/src/shared/lib/utils'
 
 interface MePost {
   id: string
@@ -15,22 +16,28 @@ interface MePost {
   } | null
 }
 
+/**
+ * 마이 페이지 컴포넌트입니다 (서버 컴포넌트).
+ * 사용자의 프로필 정보와 본인이 작성한 게시글 목록을 표시합니다.
+ */
 export const MePage = async () => {
   const supabase = await createClient()
+  
+  // 현재 로그인한 사용자 정보를 가져옵니다.
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     redirect('/login')
   }
 
-  // Fetch profile
+  // 사용자 프로필 정보를 가져옵니다.
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Fetch my posts
+  // 사용자가 작성한 게시글 목록을 최신순으로 가져옵니다.
   const { data: posts } = await supabase
     .from('posts')
     .select(`
@@ -48,35 +55,48 @@ export const MePage = async () => {
   const typedPosts = (posts as unknown as MePost[]) || []
 
   return (
-    <div className="flex flex-col min-h-full pb-10">
-      {/* Profile Section */}
-      <div className="flex flex-col items-center p-8 border-b bg-neutral-50/50 gap-4">
-        <div className="relative h-20 w-20 rounded-full bg-muted overflow-hidden border-2 border-white shadow-sm">
-          {profile?.avatar_url && (
+    <div className="flex flex-col min-h-full pb-10 bg-white">
+      {/* 프로필 섹션: 아바타 리사이징 최적화 적용 */}
+      <div className="flex flex-col items-center p-10 border-b bg-neutral-50/50 gap-5">
+        <div className="relative h-24 w-24 rounded-full bg-muted overflow-hidden border-4 border-white shadow-md">
+          {profile?.avatar_url ? (
             <Image
-              src={profile.avatar_url}
+              src={getOptimizedImageUrl(profile.avatar_url, 192) || ''}
               alt={profile.username || 'profile'}
               fill
               className="object-cover"
+              priority
             />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-neutral-200 text-neutral-400">
+              <span className="text-xs">No Avatar</span>
+            </div>
           )}
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <h1 className="text-xl font-bold">{profile?.username}</h1>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
+        <div className="flex flex-col items-center gap-1.5">
+          <h1 className="text-2xl font-extrabold tracking-tight">{profile?.username}</h1>
+          <p className="text-sm text-muted-foreground font-medium">{user.email}</p>
         </div>
-        <LogoutButton />
+        <div className="mt-2">
+          <LogoutButton />
+        </div>
       </div>
 
-      {/* My Posts Section */}
-      <div className="p-4 flex flex-col gap-4">
-        <h2 className="font-bold">내 자랑 {typedPosts.length}</h2>
+      {/* 내가 작성한 자랑거리 목록 섹션 */}
+      <div className="p-5 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">내 자랑 <span className="text-primary ml-1">{typedPosts.length}</span></h2>
+        </div>
+        
         {typedPosts.length === 0 ? (
-          <div className="py-20 text-center flex flex-col items-center gap-2">
-            <p className="text-sm text-muted-foreground">아직 올린 자랑이 없어요.</p>
+          <div className="py-24 text-center flex flex-col items-center gap-3">
+            <div className="bg-muted p-4 rounded-full">
+              <Image src="/favicon.ico" alt="icon" width={24} height={24} className="opacity-20 grayscale" />
+            </div>
+            <p className="text-sm text-muted-foreground font-medium">아직 올린 자랑이 없어요. 당신의 멋진 아이템을 보여주세요!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-8">
             {typedPosts.map((post) => (
               <PostCard
                 key={post.id}
