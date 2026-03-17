@@ -11,12 +11,24 @@ importers:
       '@base-ui/react':
         specifier: ^1.3.0
         version: 1.3.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@hookform/resolvers':
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+      '@supabase/ssr':
+        specifier: ^0.9.0
+        version: 0.9.0(@supabase/supabase-js@2.99.2)
+      '@supabase/supabase-js':
+        specifier: ^2.99.2
+        version: 2.99.2
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
       lucide-react:
         specifier: ^0.577.0
         version: 0.577.0(react@19.2.3)
@@ -29,6 +41,9 @@ importers:
       react-dom:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
+      react-hook-form:
+        specifier: ^7.71.2
+        version: 7.71.2(react@19.2.3)
       shadcn:
         specifier: ^4.0.8
         version: 4.0.8(@types/node@20.19.27)(typescript@5.9.3)
@@ -38,6 +53,12 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -51,6 +72,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
+      '@types/uuid':
+        specifier: ^11.0.0
+        version: 11.0.0
       eslint:
         specifier: ^9
         version: 9.39.2(jiti@2.6.1)
@@ -348,6 +372,11 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hookform/resolvers@5.2.2':
+    resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -671,6 +700,38 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
+
+  '@supabase/auth-js@2.99.2':
+    resolution: {integrity: sha512-uRGNXMKEw4VhwouNW7N0XDAGqJP9redHNDmWi17dTrcO1lvFfyRiXsqqfgnVC8aqtRn8kLkLPEzHjiRWsni+oQ==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/functions-js@2.99.2':
+    resolution: {integrity: sha512-xuXQARvjdfB1UPK1yUceZ5EGjOLkVz4rBAaloS9foXiAuseWEdgWBCxkIAFRxGBLGX8Uzo8kseq90jhPb+07Vg==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/postgrest-js@2.99.2':
+    resolution: {integrity: sha512-ueiOVkbkTQ7RskwVmjR8zxWYw3VKOMxo1+qep+Dx/SgApqyhWBGd92waQb45tbLc7ydB5x8El8utXOLQTuTojQ==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/realtime-js@2.99.2':
+    resolution: {integrity: sha512-J6Jm9601dkpZf3+EJ48ki2pM4sFtCNm/BI0l8iEnrczgg+JSEQkMoOW5VSpM54t0pNs69bsz5PTmYJahDZKiIQ==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/ssr@0.9.0':
+    resolution: {integrity: sha512-UFY6otYV3yqCgV+AyHj80vNkTvbf1Gas2LW4dpbQ4ap6p6v3eB2oaDfcI99jsuJzwVBCFU4BJI+oDYyhNk1z0Q==}
+    peerDependencies:
+      '@supabase/supabase-js': ^2.97.0
+
+  '@supabase/storage-js@2.99.2':
+    resolution: {integrity: sha512-V/FF8kX8JGSefsVCG1spCLSrHdNR/JFeUMn1jS9KG/Eizjx+evtdKQKLJXFgIylY/bKTXKhc2SYDPIGrIhzsug==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/supabase-js@2.99.2':
+    resolution: {integrity: sha512-179rn5wq0wBAqqGwAwR7TUGg2NOaP+fkd5FCVbYJXby85fsRNPFoNJN8YRBepqX2tN7JJcnTjqaAMXuNjiyisA==}
+    engines: {node: '>=20.0.0'}
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -780,6 +841,9 @@ packages:
   '@types/node@20.19.27':
     resolution: {integrity: sha512-N2clP5pJhB2YnZJ3PIHFk5RkygRX5WO/5f0WC08tp0wd+sv0rsJk3MqWn3CbNmT2J505a5336jaQj4ph1AdMug==}
 
+  '@types/phoenix@1.6.7':
+    resolution: {integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==}
+
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -791,8 +855,15 @@ packages:
   '@types/statuses@2.0.6':
     resolution: {integrity: sha512-xMAgYwceFhRA2zY+XbEA7mxYbA093wdiW8Vu6gZPGWy9cmOyU9XesH1tNcEWsKFd5Vzrqx5T3D38PWx1FIIXkA==}
 
+  '@types/uuid@11.0.0':
+    resolution: {integrity: sha512-HVyk8nj2m+jcFRNazzqyVKiZezyhDKrGUA3jlEcg/nZ6Ms+qHwocba1Y/AaVaznJTAM9xpdFSh+ptbNrhOGvZA==}
+    deprecated: This is a stub types definition. uuid provides its own type definitions, so you do not need this installed.
+
   '@types/validate-npm-package-name@4.0.2':
     resolution: {integrity: sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript-eslint/eslint-plugin@8.52.0':
     resolution: {integrity: sha512-okqtOgqu2qmZJ5iN4TWlgfF171dZmx2FzdOv2K/ixL2LZWDStL8+JgQerI2sa8eAEfoydG9+0V96m7V+P8yE1Q==}
@@ -1236,6 +1307,9 @@ packages:
   data-view-byte-offset@1.0.1:
     resolution: {integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ==}
     engines: {node: '>= 0.4'}
+
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -1781,6 +1855,10 @@ packages:
   human-signals@8.0.1:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
+
+  iceberg-js@0.8.1:
+    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
+    engines: {node: '>=20.0.0'}
 
   iconv-lite@0.7.2:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
@@ -2555,6 +2633,12 @@ packages:
     peerDependencies:
       react: ^19.2.3
 
+  react-hook-form@7.71.2:
+    resolution: {integrity: sha512-1CHvcDYzuRUNOflt4MOq3ZM46AronNJtQ1S7tnX6YN4y72qhgiUItpacZUAQ0TyWYci3yz1X+rXaSxiuEm86PA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -2968,6 +3052,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
     engines: {node: ^20.17.0 || >=22.9.0}
@@ -3021,6 +3109,18 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  ws@8.19.0:
+    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   wsl-utils@0.3.1:
     resolution: {integrity: sha512-g/eziiSUNBSsdDJtCLB8bdYEUMj4jR7AGeUo96p/3dTafgjHhpF4RiCFPiRILwjQoDXx5MqkBr4fwWtR3Ky4Wg==}
     engines: {node: '>=20'}
@@ -3066,8 +3166,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.3.5:
-    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -3441,6 +3541,11 @@ snapshots:
     dependencies:
       hono: 4.12.8
 
+  '@hookform/resolvers@5.2.2(react-hook-form@7.71.2(react@19.2.3))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.71.2(react@19.2.3)
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -3701,6 +3806,51 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
+  '@standard-schema/utils@0.3.0': {}
+
+  '@supabase/auth-js@2.99.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/functions-js@2.99.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/postgrest-js@2.99.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/realtime-js@2.99.2':
+    dependencies:
+      '@types/phoenix': 1.6.7
+      '@types/ws': 8.18.1
+      tslib: 2.8.1
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@supabase/ssr@0.9.0(@supabase/supabase-js@2.99.2)':
+    dependencies:
+      '@supabase/supabase-js': 2.99.2
+      cookie: 1.1.1
+
+  '@supabase/storage-js@2.99.2':
+    dependencies:
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
+
+  '@supabase/supabase-js@2.99.2':
+    dependencies:
+      '@supabase/auth-js': 2.99.2
+      '@supabase/functions-js': 2.99.2
+      '@supabase/postgrest-js': 2.99.2
+      '@supabase/realtime-js': 2.99.2
+      '@supabase/storage-js': 2.99.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
@@ -3795,6 +3945,8 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/phoenix@1.6.7': {}
+
   '@types/react-dom@19.2.3(@types/react@19.2.7)':
     dependencies:
       '@types/react': 19.2.7
@@ -3805,7 +3957,15 @@ snapshots:
 
   '@types/statuses@2.0.6': {}
 
+  '@types/uuid@11.0.0':
+    dependencies:
+      uuid: 13.0.0
+
   '@types/validate-npm-package-name@4.0.2': {}
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 20.19.27
 
   '@typescript-eslint/eslint-plugin@8.52.0(@typescript-eslint/parser@8.52.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
@@ -4256,6 +4416,8 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
+  date-fns@4.1.0: {}
+
   debug@3.2.7:
     dependencies:
       ms: 2.1.3
@@ -4558,8 +4720,8 @@ snapshots:
       '@babel/parser': 7.28.5
       eslint: 9.39.2(jiti@2.6.1)
       hermes-parser: 0.25.1
-      zod: 4.3.5
-      zod-validation-error: 4.0.2(zod@4.3.5)
+      zod: 4.3.6
+      zod-validation-error: 4.0.2(zod@4.3.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -4957,6 +5119,8 @@ snapshots:
   human-signals@2.1.0: {}
 
   human-signals@8.0.1: {}
+
+  iceberg-js@0.8.1: {}
 
   iconv-lite@0.7.2:
     dependencies:
@@ -5621,6 +5785,10 @@ snapshots:
       react: 19.2.3
       scheduler: 0.27.0
 
+  react-hook-form@7.71.2(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
   react-is@16.13.1: {}
 
   react@19.2.3: {}
@@ -6181,6 +6349,8 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuid@13.0.0: {}
+
   validate-npm-package-name@7.0.2: {}
 
   vary@1.1.2: {}
@@ -6252,6 +6422,8 @@ snapshots:
 
   wrappy@1.0.2: {}
 
+  ws@8.19.0: {}
+
   wsl-utils@0.3.1:
     dependencies:
       is-wsl: 3.1.1
@@ -6283,10 +6455,10 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.2(zod@4.3.5):
+  zod-validation-error@4.0.2(zod@4.3.6):
     dependencies:
-      zod: 4.3.5
+      zod: 4.3.6
 
   zod@3.25.76: {}
 
-  zod@4.3.5: {}
+  zod@4.3.6: {}
