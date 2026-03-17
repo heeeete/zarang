@@ -1,5 +1,5 @@
 import { createClient } from '@/src/shared/lib/supabase/server'
-import { PostCard } from '@/src/entities/post/ui/PostCard'
+import { HomeFeed } from '@/src/widgets/post-feed/ui/HomeFeed'
 import { Button } from '@/src/shared/ui/button'
 import Link from 'next/link'
 import { PlusCircle } from 'lucide-react'
@@ -13,7 +13,7 @@ interface HomePost {
   created_at: string
   author: {
     username: string
-  } | null
+  }
   _count: {
     post_likes: number
     comments: number
@@ -34,10 +34,16 @@ interface RawPost {
   comments: { count: number }[]
 }
 
+const PAGE_SIZE = 10
+
+/**
+ * 홈페이지 컴포넌트입니다 (서버 컴포넌트).
+ * 초기 데이터 10개를 서버에서 페칭하여 클라이언트 위젯에 전달합니다.
+ */
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // 게시물 목록을 작성자 정보, 좋아요 수, 댓글 수와 함께 가져옵니다.
+  // 초기 10개의 게시물 목록을 작성자 정보, 좋아요 수, 댓글 수와 함께 가져옵니다.
   const { data, error } = await supabase
     .from('posts')
     .select(`
@@ -52,22 +58,22 @@ export default async function HomePage() {
     `)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
+    .range(0, PAGE_SIZE - 1)
 
   if (error) {
-    console.error('Fetch posts error:', error)
+    console.error('초기 게시글 페칭 에러:', error)
   }
 
-  // Supabase의 데이터 타입을 RawPost[]로 안전하게 단언합니다.
   const rawPosts = (data as unknown as RawPost[]) || []
 
   // 원시 데이터를 HomePost 형식으로 매핑합니다.
-  const typedPosts: HomePost[] = rawPosts.map((post) => ({
+  const initialPosts: HomePost[] = rawPosts.map((post) => ({
     id: post.id,
     title: post.title,
     thumbnail_url: post.thumbnail_url,
     category: post.category,
     created_at: post.created_at,
-    author: post.author,
+    author: post.author || { username: '알 수 없음' },
     _count: {
       post_likes: post.post_likes?.[0]?.count ?? 0,
       comments: post.comments?.[0]?.count ?? 0,
@@ -76,26 +82,20 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      {/* 헤더는 루트 레이아웃에서 처리됨 */}
-      
       <main className="flex-1 px-4 py-6">
-        {typedPosts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-muted-foreground mb-4">아직 자랑이 없어요. 첫 번째로 자랑해보세요!</p>
+        {initialPosts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-muted p-4 rounded-full mb-4">
+              <PlusCircle className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">아직 자랑이 없어요</h2>
+            <p className="text-muted-foreground mb-6">첫 번째로 당신의 아이템을 자랑해보세요!</p>
             <Button variant="default" size="lg" render={<Link href="/write" />} nativeButton={false}>
-              <PlusCircle className="mr-2 h-4 w-4" />
               자랑하기
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8">
-            {typedPosts.map((post) => (
-              <PostCard key={post.id} post={{
-                ...post,
-                author: post.author || { username: '알 수 없음' }
-              }} />
-            ))}
-          </div>
+          <HomeFeed initialPosts={initialPosts} />
         )}
       </main>
     </div>
