@@ -4,6 +4,7 @@ import { Button } from '@/src/shared/ui/button'
 import Link from 'next/link'
 import { PlusCircle } from 'lucide-react'
 
+// 홈페이지용 게시글 인터페이스 정의
 interface HomePost {
   id: string
   title: string
@@ -13,14 +14,31 @@ interface HomePost {
   author: {
     username: string
   } | null
+  _count: {
+    post_likes: number
+    comments: number
+  }
+}
+
+// Supabase로부터 반환되는 원시 데이터의 타입 정의
+interface RawPost {
+  id: string
+  title: string
+  thumbnail_url: string | null
+  category: string
+  created_at: string
+  author: {
+    username: string
+  } | null
+  post_likes: { count: number }[]
+  comments: { count: number }[]
 }
 
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // 게시글 목록을 작성자 정보와 함께 가져옵니다.
-  // profiles와의 관계가 여러 개이므로 !posts_author_id_fkey를 명시합니다.
-  const { data: posts, error } = await supabase
+  // 게시물 목록을 작성자 정보, 좋아요 수, 댓글 수와 함께 가져옵니다.
+  const { data, error } = await supabase
     .from('posts')
     .select(`
       id,
@@ -28,7 +46,9 @@ export default async function HomePage() {
       thumbnail_url,
       category,
       created_at,
-      author:profiles!posts_author_id_fkey(username)
+      author:profiles!posts_author_id_fkey(username),
+      post_likes(count),
+      comments(count)
     `)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
@@ -37,7 +57,22 @@ export default async function HomePage() {
     console.error('Fetch posts error:', error)
   }
 
-  const typedPosts = (posts as unknown as HomePost[]) || []
+  // Supabase의 데이터 타입을 RawPost[]로 안전하게 단언합니다.
+  const rawPosts = (data as unknown as RawPost[]) || []
+
+  // 원시 데이터를 HomePost 형식으로 매핑합니다.
+  const typedPosts: HomePost[] = rawPosts.map((post) => ({
+    id: post.id,
+    title: post.title,
+    thumbnail_url: post.thumbnail_url,
+    category: post.category,
+    created_at: post.created_at,
+    author: post.author,
+    _count: {
+      post_likes: post.post_likes?.[0]?.count ?? 0,
+      comments: post.comments?.[0]?.count ?? 0,
+    },
+  }))
 
   return (
     <div className="flex flex-col min-h-full">
