@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useId } from 'react';
+import { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ImageIcon, XCircleIcon, Loader2Icon, GripVertical } from 'lucide-react';
+import { Loader2Icon, ImageIcon, XCircleIcon, GripVertical } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import { Input } from '@/src/shared/ui/input';
 import { Textarea } from '@/src/shared/ui/textarea';
@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/src/shared/ui/select';
 import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
-import { createPostSchema, CATEGORIES, type CreatePostInput } from '../model/schema';
+import { createPostSchema, CATEGORIES, type CreatePostInput } from '../../post-creation/model/schema';
 import { v4 as uuidv4 } from 'uuid';
 
 // DnD Kit Imports
@@ -35,27 +35,28 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-interface ImageItem {
-  id: string;
-  file: File;
-  preview: string;
+interface EditableImageItem {
+  id: string; // DB ID or UUID
+  type: 'existing' | 'new';
+  url: string;
+  file?: File;
+  storage_path?: string; // only for 'existing'
 }
 
 /**
- * 드래그 가능한 이미지 아이템 컴포넌트입니다.
+ * 드래그 가능한 수정용 이미지 아이템 컴포넌트입니다.
  */
-const SortableImageItem = ({ 
+const SortableEditableImageItem = ({ 
   item, 
   index, 
   onRemove 
 }: { 
-  item: ImageItem; 
+  item: EditableImageItem; 
   index: number; 
   onRemove: (id: string) => void 
 }) => {
@@ -82,7 +83,7 @@ const SortableImageItem = ({
       className="relative aspect-square overflow-hidden rounded-lg border bg-white"
     >
       <Image
-        src={item.preview}
+        src={item.url}
         alt={`preview-${index}`}
         fill
         className="object-cover"
@@ -115,9 +116,38 @@ const SortableImageItem = ({
   );
 };
 
-export const PostCreateForm = () => {
-  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+interface PostEditFormProps {
+  post: {
+    id: string;
+    title: string;
+    description: string | null;
+    category: string;
+    images: Array<{
+      id: string;
+      image_url: string;
+      storage_path: string;
+    }>;
+  };
+}
+
+/**
+ * 게시글 수정을 위한 폼 컴포넌트입니다.
+ * 이미지 수정(추가/삭제/순서변경) 기능을 포함합니다.
+ */
+export const PostEditForm = ({ post }: PostEditFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Combine all images into a single sorted list
+  const [imageItems, setImageItems] = useState<EditableImageItem[]>(
+    post.images.map(img => ({
+      id: img.id,
+      type: 'existing',
+      url: img.image_url,
+      storage_path: img.storage_path
+    }))
+  );
+  
+  const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
   const router = useRouter();
 
   // DnD Sensors
@@ -135,18 +165,23 @@ export const PostCreateForm = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     control,
+    setValue,
     formState: { errors },
   } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      category: '' as any,
-      images: [],
+      title: post.title,
+      description: post.description || '',
+      category: post.category as any,
+      images: [{}], // Initial hack
     },
   });
+
+  // Update validation whenever imageItems changes
+  useEffect(() => {
+    setValue('images', new Array(imageItems.length).fill({}), { shouldValidate: true });
+  }, [imageItems, setValue]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -155,28 +190,27 @@ export const PostCreateForm = () => {
       return;
     }
 
-    const newItems: ImageItem[] = files.map(file => ({
+    const newItems: EditableImageItem[] = files.map(file => ({
       id: uuidv4(),
-      file,
-      preview: URL.createObjectURL(file)
+      type: 'new',
+      url: URL.createObjectURL(file),
+      file
     }));
 
-    const updatedItems = [...imageItems, ...newItems].slice(0, 10);
-    setImageItems(updatedItems);
-    
-    // Sync with React Hook Form
-    setValue('images', updatedItems.map(item => item.file), { shouldValidate: true });
+    setImageItems(prev => [...prev, ...newItems].slice(0, 10));
   };
 
   const removeImage = (id: string) => {
     const itemToRemove = imageItems.find(item => item.id === id);
-    if (itemToRemove) {
-      URL.revokeObjectURL(itemToRemove.preview);
+    if (!itemToRemove) return;
+
+    if (itemToRemove.type === 'existing') {
+      setDeletedImageIds(prev => [...prev, id]);
+    } else {
+      URL.revokeObjectURL(itemToRemove.url);
     }
-    
-    const updatedItems = imageItems.filter((item) => item.id !== id);
-    setImageItems(updatedItems);
-    setValue('images', updatedItems.map(item => item.file), { shouldValidate: true });
+
+    setImageItems(prev => prev.filter(item => item.id !== id));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -186,12 +220,7 @@ export const PostCreateForm = () => {
       setImageItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
-        const updatedItems = arrayMove(items, oldIndex, newIndex);
-        
-        // Sync with React Hook Form after move
-        setValue('images', updatedItems.map(item => item.file), { shouldValidate: true });
-        
-        return updatedItems;
+        return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
@@ -204,27 +233,37 @@ export const PostCreateForm = () => {
       formData.append('description', data.description || '');
       formData.append('category', data.category);
       
-      // Use the sorted imageItems for submission
-      imageItems.forEach((item) => {
-        formData.append('images', item.file);
+      // Filter image lists for backend
+      const remainingExistingIds = imageItems
+        .filter(item => item.type === 'existing')
+        .map(item => item.id);
+      
+      const newFiles = imageItems
+        .filter(item => item.type === 'new')
+        .map(item => item.file as File);
+
+      formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
+      formData.append('remainingImageIds', JSON.stringify(remainingExistingIds));
+
+      newFiles.forEach((file) => {
+        formData.append('newImages', file);
       });
 
-      const response = await fetch('/api/posts', {
-        method: 'POST',
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'PATCH',
         body: formData,
       });
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || '게시글을 작성하지 못했어요.');
+        throw new Error(result.error || '수정 내용을 저장하지 못했어요.');
       }
 
-      const { id } = await response.json();
-      toast.success('자랑거리를 성공적으로 등록했어요!');
-      router.push(`/posts/${id}`);
+      toast.success('수정 내용을 저장했어요.');
+      router.push(`/posts/${post.id}`);
+      router.refresh();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '게시글을 작성하지 못했어요. 다시 시도해 주세요.';
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : '수정 내용을 저장하지 못했어요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +287,7 @@ export const PostCreateForm = () => {
                   strategy={rectSortingStrategy}
                 >
                   {imageItems.map((item, index) => (
-                    <SortableImageItem
+                    <SortableEditableImageItem
                       key={item.id}
                       item={item}
                       index={index}
@@ -256,7 +295,7 @@ export const PostCreateForm = () => {
                     />
                   ))}
                 </SortableContext>
-                
+
                 {imageItems.length < 10 && (
                   <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted transition-colors hover:border-primary bg-neutral-50 hover:bg-neutral-100">
                     <ImageIcon className="size-8 text-muted-foreground" />
@@ -288,9 +327,7 @@ export const PostCreateForm = () => {
             render={({ field }) => (
               <Select
                 value={field.value}
-                onValueChange={(value) => {
-                  field.onChange(value);
-                }}
+                onValueChange={field.onChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택해주세요">
@@ -329,16 +366,27 @@ export const PostCreateForm = () => {
         </Field>
       </FieldGroup>
 
-      <Button type="submit" size="lg" disabled={isSubmitting} className="mt-4 w-full h-12 text-base font-bold shadow-lg shadow-primary/20">
-        {isSubmitting ? (
-          <>
-            <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />
-            업로드 중...
-          </>
-        ) : (
-          '자랑하기'
-        )}
-      </Button>
+      <div className="flex gap-3 mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="flex-1 h-12"
+          onClick={() => router.back()}
+        >
+          취소
+        </Button>
+        <Button type="submit" size="lg" disabled={isSubmitting} className="flex-1 h-12 text-base font-bold shadow-lg shadow-primary/20">
+          {isSubmitting ? (
+            <>
+              <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />
+              수정 중...
+            </>
+          ) : (
+            '수정완료'
+          )}
+        </Button>
+      </div>
     </form>
   );
 };

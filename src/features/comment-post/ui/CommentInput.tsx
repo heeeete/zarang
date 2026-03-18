@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/src/shared/ui/button'
+import { toast } from 'sonner'
 
 interface CommentInputProps {
   postId: string
@@ -28,18 +29,20 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          alert('로그인이 필요한 기능입니다.')
+          toast.error('로그인이 필요한 서비스예요.');
         } else {
-          throw new Error('댓글 작성 중 오류가 발생했습니다.')
+          throw new Error('댓글을 등록하지 못했어요.');
         }
       } else {
         setContent('')
+        toast.success('댓글을 남겼어요.');
         router.refresh()
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했습니다.'
-      alert(errorMessage)
-    } finally {
+      } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했어요.';
+      toast.error(errorMessage)
+      } finally {
+
       setIsSubmitting(false)
     }
   }

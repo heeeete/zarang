@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/src/shared/lib/supabase/client'
 import { Button } from '@/src/shared/ui/button'
+import { toast } from 'sonner'
 
 export const SocialLoginButtons = () => {
   const supabase = createClient()
@@ -21,7 +22,7 @@ export const SocialLoginButtons = () => {
     })
 
     if (error) {
-      alert(error.message)
+      toast.error(error.message)
     }
   }
 

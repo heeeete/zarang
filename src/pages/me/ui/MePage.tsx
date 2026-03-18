@@ -46,13 +46,22 @@ export const MePage = async () => {
       thumbnail_url,
       category,
       created_at,
-      author:profiles(username)
+      author:profiles!posts_author_id_fkey(username),
+      post_likes(count),
+      comments(count)
     `)
     .eq('author_id', user.id)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
-  const typedPosts = (posts as unknown as MePost[]) || []
+  const typedPosts = (posts as unknown as any[])?.map(post => ({
+    ...post,
+    author: post.author || { username: '알 수 없음' },
+    _count: {
+      post_likes: post.post_likes?.[0]?.count ?? 0,
+      comments: post.comments?.[0]?.count ?? 0,
+    }
+  })) || []
 
   return (
     <div className="flex flex-col min-h-full pb-10 bg-white">
