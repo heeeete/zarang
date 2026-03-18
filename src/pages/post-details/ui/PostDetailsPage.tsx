@@ -2,7 +2,7 @@ import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MessageCircle, ChevronLeft, MoreVertical } from 'lucide-react';
+import { MessageCircle, ChevronLeft, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/src/shared/ui/button';
@@ -21,20 +21,20 @@ interface PostDetailsPageProps {
 }
 
 interface DetailImage {
-  id: string
-  image_url: string
-  width?: number | null
-  height?: number | null
+  id: string;
+  image_url: string;
+  width?: number | null;
+  height?: number | null;
 }
 
 interface DetailComment {
-  id: string
-  content: string
-  created_at: string
+  id: string;
+  content: string;
+  created_at: string;
   author: {
-    username: string
-    avatar_url: string | null
-  } | null
+    username: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 /**
@@ -108,9 +108,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
           {user?.id === post.author_id ? (
             <PostActionMenu postId={id} />
           ) : (
-            <Button variant="ghost" size="icon" className="-mr-2 hover:bg-transparent">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+            <div className="size-8" />
           )}
         </div>
       </header>
@@ -131,8 +129,8 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-neutral-200 text-[10px] text-neutral-500">
-                  프로필
+                <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
+                  <UserIcon className="size-5" />
                 </div>
               )}
             </div>
@@ -192,8 +190,8 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-[8px] text-neutral-400">
-                        N
+                      <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
+                        <UserIcon className="size-4" />
                       </div>
                     )}
                   </div>
