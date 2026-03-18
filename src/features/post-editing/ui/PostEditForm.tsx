@@ -173,7 +173,7 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
     defaultValues: {
       title: post.title,
       description: post.description || '',
-      category: post.category as any,
+      category: post.category as CreatePostInput['category'],
       images: [{}], // Initial hack
     },
   });

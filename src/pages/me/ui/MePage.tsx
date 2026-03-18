@@ -5,7 +5,7 @@ import { LogoutButton } from '@/src/features/auth/ui/LogoutButton'
 import { PostCard } from '@/src/entities/post/ui/PostCard'
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils'
 
-interface MePost {
+interface RawMePost {
   id: string
   title: string
   thumbnail_url: string | null
@@ -14,6 +14,8 @@ interface MePost {
   author: {
     username: string
   } | null
+  post_likes: { count: number }[]
+  comments: { count: number }[]
 }
 
 /**
@@ -53,7 +55,7 @@ export const MePage = async () => {
     .eq('author_id', user.id)
     .order('created_at', { ascending: false })
 
-  const typedPosts = (posts as unknown as any[])?.map(post => ({
+  const typedPosts = (posts as unknown as RawMePost[])?.map(post => ({
     ...post,
     author: post.author || { username: '알 수 없음' },
     _count: {

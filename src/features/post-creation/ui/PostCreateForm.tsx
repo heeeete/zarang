@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useId } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -35,7 +35,6 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -143,7 +142,7 @@ export const PostCreateForm = () => {
     defaultValues: {
       title: '',
       description: '',
-      category: '' as any,
+      category: '' as CreatePostInput['category'],
       images: [],
     },
   });
