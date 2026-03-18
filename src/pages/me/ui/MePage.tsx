@@ -2,8 +2,10 @@ import { createClient } from '@/src/shared/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { LogoutButton } from '@/src/features/auth/ui/LogoutButton'
+import { ProfileEditButton } from '@/src/features/profile-management/ui/ProfileEditButton'
 import { PostCard } from '@/src/entities/post/ui/PostCard'
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils'
+import { User as UserIcon } from 'lucide-react'
 
 interface RawMePost {
   id: string
@@ -78,8 +80,8 @@ export const MePage = async () => {
               priority
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-neutral-200 text-neutral-400">
-              <span className="text-xs">No Avatar</span>
+            <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
+              <UserIcon className="size-12" />
             </div>
           )}
         </div>
@@ -87,7 +89,8 @@ export const MePage = async () => {
           <h1 className="text-2xl font-extrabold tracking-tight">{profile?.username}</h1>
           <p className="text-sm text-muted-foreground font-medium">{user.email}</p>
         </div>
-        <div className="mt-2">
+        <div className="mt-2 flex items-center gap-2">
+          <ProfileEditButton />
           <LogoutButton />
         </div>
       </div>
