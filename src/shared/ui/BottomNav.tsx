@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { Home, PlusSquare, User } from 'lucide-react';
+import { Home, Compass, PlusSquare, User } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -38,6 +38,7 @@ export const BottomNav = () => {
 
   const navItems = [
     { href: '/', icon: Home, label: '홈' },
+    { href: '/explore', icon: Compass, label: '구경하기' },
     { 
       href: '/write', 
       icon: PlusSquare, 

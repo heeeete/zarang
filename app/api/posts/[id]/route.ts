@@ -9,7 +9,7 @@ import sharp from 'sharp'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
   const supabase = await createClient()
@@ -28,11 +28,11 @@ export async function GET(
 }
 
 /**
- * 게시글 수정 (이미지 포함)
+ * 게시글 수정 (이미지 및 오디오 포함)
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
   const supabase = await createClient()
@@ -44,19 +44,23 @@ export async function PATCH(
 
   try {
     const formData = await request.formData()
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const category = formData.get('category') as string
+    const title = formData.get('title') as string | null
+    const description = formData.get('description') as string | null
+    const category_id = formData.get('category_id') as string
     
-    // Parse image management data
+    // 이미지 관리 데이터
     const deletedImageIds = JSON.parse(formData.get('deletedImageIds') as string || '[]') as string[]
     const remainingImageIds = JSON.parse(formData.get('remainingImageIds') as string || '[]') as string[]
     const newImages = formData.getAll('newImages') as File[]
 
-    // 1. Ownership Check
+    // 오디오 관리 데이터
+    const deleteAudio = formData.get('deleteAudio') === 'true'
+    const newAudioFile = formData.get('audio') as File | null
+
+    // 1. Ownership 및 기존 정보 확인
     const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select('author_id')
+      .select('author_id, audio_storage_path')
       .eq('id', id)
       .single()
 
@@ -70,9 +74,46 @@ export async function PATCH(
 
     const adminSupabase = createAdminClient()
 
-    // 2. Delete images from Storage and DB
+    // 2. Audio Update Logic
+    let newAudioUrl = undefined // undefined면 업데이트 안함
+    let newAudioStoragePath = undefined
+
+    // 기존 오디오 삭제 혹은 교체 시
+    if (deleteAudio || newAudioFile) {
+      if (post.audio_storage_path) {
+        await adminSupabase.storage.from('post-images').remove([post.audio_storage_path])
+      }
+      
+      if (deleteAudio && !newAudioFile) {
+        newAudioUrl = null
+        newAudioStoragePath = null
+      }
+    }
+
+    // 새 오디오 업로드
+    if (newAudioFile) {
+      const fileExt = newAudioFile.name.split('.').pop() || 'wav'
+      const fileName = `audio_${Date.now()}_${uuidv4()}.${fileExt}`
+      newAudioStoragePath = `post-audios/${user.id}/${id}/${fileName}`
+
+      const { error: audioUploadError } = await adminSupabase.storage
+        .from('post-images')
+        .upload(newAudioStoragePath, newAudioFile, {
+          contentType: newAudioFile.type,
+          upsert: true,
+        })
+
+      if (audioUploadError) throw audioUploadError
+
+      const { data: { publicUrl } } = adminSupabase.storage
+        .from('post-images')
+        .getPublicUrl(newAudioStoragePath)
+      
+      newAudioUrl = publicUrl
+    }
+
+    // 3. Image Delete Logic
     if (deletedImageIds.length > 0) {
-      // Get storage paths first
       const { data: imagesToDelete } = await adminSupabase
         .from('post_images')
         .select('storage_path')
@@ -83,32 +124,28 @@ export async function PATCH(
         await adminSupabase.storage.from('post-images').remove(paths)
       }
 
-      const { error: deleteError } = await adminSupabase
-        .from('post_images')
-        .delete()
-        .in('id', deletedImageIds)
-
-      if (deleteError) throw deleteError
+      await adminSupabase.from('post_images').delete().in('id', deletedImageIds)
     }
 
-    // 3. Upload New Images
+    // 4. Process and Upload New Images
     for (let i = 0; i < newImages.length; i++) {
       const image = newImages[i]
-      const buffer = Buffer.from(await image.arrayBuffer())
-      
-      // sharp로 이미지 메타데이터 추출
-      const metadata = await sharp(buffer).metadata()
+      const rawBuffer = Buffer.from(await image.arrayBuffer())
+      const processedImage = sharp(rawBuffer).rotate()
+      const processedBuffer = await processedImage.toBuffer()
+      const metadata = await sharp(processedBuffer).metadata()
+
       const width = metadata.width || null
       const height = metadata.height || null
 
-      const fileExt = image.name.split('.').pop()
+      const fileExt = image.name.split('.').pop() || 'jpg'
       const fileName = `${Date.now()}_${uuidv4()}.${fileExt}`
       const storagePath = `post-images/${user.id}/${id}/${fileName}`
 
       const { error: storageError } = await adminSupabase.storage
         .from('post-images')
-        .upload(storagePath, buffer, {
-          contentType: image.type,
+        .upload(storagePath, processedBuffer, {
+          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
           upsert: false,
         })
 
@@ -118,7 +155,7 @@ export async function PATCH(
         .from('post-images')
         .getPublicUrl(storagePath)
 
-      const { error: imageInsertError } = await adminSupabase
+      await adminSupabase
         .from('post_images')
         .insert({
           post_id: id,
@@ -128,11 +165,9 @@ export async function PATCH(
           width,
           height,
         })
-
-      if (imageInsertError) throw imageInsertError
     }
 
-    // 4. Update image sort_order
+    // 5. Update image sort_order
     for (let i = 0; i < remainingImageIds.length; i++) {
       await adminSupabase
         .from('post_images')
@@ -140,7 +175,7 @@ export async function PATCH(
         .eq('id', remainingImageIds[i])
     }
 
-    // 5. Update Post Thumbnail
+    // 6. Update Post Thumbnail and Info
     const { data: allImages } = await adminSupabase
       .from('post_images')
       .select('image_url')
@@ -150,19 +185,32 @@ export async function PATCH(
 
     const newThumbnailUrl = allImages?.[0]?.image_url || null
 
-    // 6. Final Post Update
-    const { error: updateError } = await adminSupabase
-      .from('posts')
-      .update({
-        title,
-        description,
-        category,
-        thumbnail_url: newThumbnailUrl,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
+    interface PostUpdateData {
+      title: string | null;
+      description: string | null;
+      category_id: string;
+      thumbnail_url: string | null;
+      updated_at: string;
+      audio_url?: string | null;
+      audio_storage_path?: string | null;
+    }
 
-    if (updateError) throw updateError
+    const updateData: PostUpdateData = {
+      title: title || null,
+      description: description || null,
+      category_id,
+      thumbnail_url: newThumbnailUrl,
+      updated_at: new Date().toISOString(),
+    }
+
+    // 오디오 정보가 변경된 경우에만 포함
+    if (newAudioUrl !== undefined) updateData.audio_url = newAudioUrl
+    if (newAudioStoragePath !== undefined) updateData.audio_storage_path = newAudioStoragePath
+
+    await adminSupabase
+      .from('posts')
+      .update(updateData)
+      .eq('id', id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -172,12 +220,11 @@ export async function PATCH(
 }
 
 /**
- * 게시글 완전 삭제 (Hard Delete)
- * 연관된 이미지 파일(Storage), 댓글, 좋아요, 이미지 정보가 모두 삭제됩니다.
+ * 게시글 완전 삭제
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
   const supabase = await createClient()
@@ -188,48 +235,25 @@ export async function DELETE(
   }
 
   try {
-    // 1. Ownership 및 이미지 경로 확인
     const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select(`
-        author_id,
-        images:post_images(storage_path)
-      `)
+      .select(`author_id, audio_storage_path, images:post_images(storage_path)`)
       .eq('id', id)
       .single()
 
-    if (fetchError || !post) {
-      return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    if (post.author_id !== user.id) {
-      return NextResponse.json({ error: '삭제 권한이 없습니다.' }, { status: 403 })
-    }
+    if (fetchError || !post) return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
+    if (post.author_id !== user.id) return NextResponse.json({ error: '삭제 권한이 없습니다.' }, { status: 403 })
 
     const adminSupabase = createAdminClient()
+    const filesToDelete: string[] = []
+    if (post.images) post.images.forEach(img => filesToDelete.push(img.storage_path))
+    if (post.audio_storage_path) filesToDelete.push(post.audio_storage_path)
 
-    // 2. Storage에서 이미지 파일들 삭제
-    if (post.images && post.images.length > 0) {
-      const storagePaths = post.images.map(img => img.storage_path)
-      const { error: storageDeleteError } = await adminSupabase.storage
-        .from('post-images')
-        .remove(storagePaths)
-      
-      if (storageDeleteError) {
-        console.error('Storage delete error:', storageDeleteError)
-        // 파일 삭제 실패는 로그만 남기고 DB 삭제는 계속 진행합니다.
-      }
+    if (filesToDelete.length > 0) {
+      await adminSupabase.storage.from('post-images').remove(filesToDelete)
     }
 
-    // 3. DB에서 게시글 삭제
-    // CASCADE 설정 덕분에 연관된 댓글, 좋아요, 이미지 레코드도 자동 삭제됩니다.
-    const { error: deleteError } = await adminSupabase
-      .from('posts')
-      .delete()
-      .eq('id', id)
-
-    if (deleteError) throw deleteError
-
+    await adminSupabase.from('posts').delete().eq('id', id)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Post delete error:', error)

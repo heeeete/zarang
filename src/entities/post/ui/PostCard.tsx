@@ -2,7 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, MessageCircle } from 'lucide-react'
 import { Badge } from '@/src/shared/ui/badge'
-import { CATEGORIES } from '@/src/features/post-creation/model/schema'
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils'
 
 /**
@@ -11,12 +10,14 @@ import { getOptimizedImageUrl } from '@/src/shared/lib/utils'
 interface PostCardProps {
   post: {
     id: string
-    title: string
+    title: string | null
     thumbnail_url: string | null
-    category: string
     author: {
       username: string
     }
+    categories: {
+      label: string
+    } | null
     _count?: {
       post_likes: number
       comments: number
@@ -29,8 +30,8 @@ interface PostCardProps {
  * 16:9 비율의 썸네일과 게시글 정보를 표시합니다.
  */
 export const PostCard = ({ post }: PostCardProps) => {
-  // 카테고리 밸류를 라벨로 변환 (예: 'keyboard' -> '키보드')
-  const categoryLabel = CATEGORIES.find((cat) => cat.value === post.category)?.label || post.category
+  // 카테고리 라벨 (DB 조인 데이터 사용)
+  const categoryLabel = post.categories?.label || '기타'
 
   // 리사이징된 이미지 URL 생성 (카드용이므로 420px 너비로 충분)
   const optimizedThumbnail = getOptimizedImageUrl(post.thumbnail_url, 420)
@@ -42,7 +43,7 @@ export const PostCard = ({ post }: PostCardProps) => {
         {optimizedThumbnail ? (
           <Image
             src={optimizedThumbnail}
-            alt={post.title}
+            alt={post.title || '자랑거리 이미지'}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 420px) 100vw, 420px"

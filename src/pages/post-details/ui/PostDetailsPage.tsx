@@ -2,12 +2,11 @@ import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MessageCircle, ChevronLeft, User as UserIcon } from 'lucide-react';
+import { MessageCircle, ChevronLeft, User as UserIcon, Mic } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/src/shared/ui/button';
 import { Badge } from '@/src/shared/ui/badge';
-import { CATEGORIES } from '@/src/features/post-creation/model/schema';
 import { LikeButton } from '@/src/features/like-post/ui/LikeButton';
 import { CommentInput } from '@/src/features/comment-post/ui/CommentInput';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
@@ -15,9 +14,9 @@ import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu
 import { PostImageGallery } from '@/src/entities/post/ui/PostImageGallery';
 
 interface PostDetailsPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 interface DetailImage {
@@ -57,6 +56,8 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
       `
       *,
       author:profiles!posts_author_id_fkey(username, avatar_url),
+      categories(label),
+      audio_url,
       images:post_images(id, image_url, width, height),
       likes:post_likes(count),
       comments:comments(
@@ -87,8 +88,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
     initialIsLiked = !!likeData;
   }
 
-  const categoryLabel =
-    CATEGORIES.find((cat) => cat.value === post.category)?.label || post.category;
+  const categoryLabel = post.categories?.label || '기타';
 
   return (
     <div className="flex min-h-full flex-col bg-white pb-20">
@@ -119,7 +119,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
       {/* 게시글 본문 섹션 */}
       <div className="flex flex-col gap-5 p-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link href={post.author_id === user?.id ? '/me' : `/users/${post.author_id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <div className="relative h-9 w-9 overflow-hidden rounded-full border bg-muted">
               {post.author?.avatar_url ? (
                 <Image
@@ -140,14 +140,25 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ko })}
               </span>
             </div>
-          </div>
+          </Link>
           <Badge variant="secondary" className="px-2.5 py-0.5 font-medium">
             {categoryLabel}
           </Badge>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h1 className="text-2xl leading-tight font-extrabold tracking-tight">{post.title}</h1>
+          <h1 className="text-2xl leading-tight font-extrabold tracking-tight">{post.title || '제목 없음'}</h1>
+          
+          {/* ASMR 오디오 플레이어 */}
+          {post.audio_url && (
+            <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-100 mt-1 shadow-sm">
+              <p className="text-[10px] font-bold text-neutral-400 mb-2 uppercase tracking-widest flex items-center gap-1.5">
+                <Mic className="size-3" /> ASMR SOUND
+              </p>
+              <audio src={post.audio_url} controls className="h-8 w-full" />
+            </div>
+          )}
+
           {post.description && (
             <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-neutral-800">
               {post.description}

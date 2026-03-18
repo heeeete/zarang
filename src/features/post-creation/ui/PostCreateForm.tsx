@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/src/shared/ui/select';
 import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
-import { createPostSchema, CATEGORIES, type CreatePostInput } from '../model/schema';
+import { createPostSchema, type CreatePostInput, type Category } from '../model/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { VoiceRecorderTest } from './VoiceRecorderTest';
 
 // DnD Kit Imports
 import {
@@ -84,7 +85,7 @@ const SortableImageItem = ({
         src={item.preview}
         alt={`preview-${index}`}
         fill
-        className="object-cover"
+        className="object-cover transition-transform duration-500 hover:scale-105"
         unoptimized
       />
       
@@ -114,8 +115,9 @@ const SortableImageItem = ({
   );
 };
 
-export const PostCreateForm = () => {
+export const PostCreateForm = ({ categories }: { categories: Category[] }) => {
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -136,16 +138,20 @@ export const PostCreateForm = () => {
     handleSubmit,
     setValue,
     control,
+    watch,
     formState: { errors },
   } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
       title: '',
       description: '',
-      category: '' as CreatePostInput['category'],
+      category_id: '' as CreatePostInput['category_id'],
       images: [],
     },
   });
+
+  const selectedCategoryId = watch('category_id');
+  const isKeyboardCategory = categories.find(c => c.id === selectedCategoryId)?.slug === 'keyboard';
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -199,10 +205,15 @@ export const PostCreateForm = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('title', data.title);
+      formData.append('title', data.title || '');
       formData.append('description', data.description || '');
-      formData.append('category', data.category);
+      formData.append('category_id', data.category_id);
       
+      // 음성 녹음 파일 추가
+      if (audioBlob) {
+        formData.append('audio', audioBlob, 'recording.wav');
+      }
+
       // Use the sorted imageItems for submission
       imageItems.forEach((item) => {
         formData.append('images', item.file);
@@ -282,7 +293,7 @@ export const PostCreateForm = () => {
         <Field>
           <FieldLabel>카테고리</FieldLabel>
           <Controller
-            name="category"
+            name="category_id"
             control={control}
             render={({ field }) => (
               <Select
@@ -293,12 +304,12 @@ export const PostCreateForm = () => {
               >
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택해주세요">
-                    {CATEGORIES.find((cat) => cat.value === field.value)?.label}
+                    {categories.find((cat) => cat.id === field.value)?.label}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
                       {cat.label}
                     </SelectItem>
                   ))}
@@ -306,12 +317,22 @@ export const PostCreateForm = () => {
               </Select>
             )}
           />
-          {errors.category && <FieldError>{errors.category.message}</FieldError>}
+          {errors.category_id && <FieldError>{errors.category_id.message}</FieldError>}
         </Field>
+
+        {/* Audio (ASMR) - 키보드 카테고리일 때만 표시 */}
+        {isKeyboardCategory && (
+          <Field>
+            <FieldLabel>타건음 (ASMR)</FieldLabel>
+            <FieldContent>
+              <VoiceRecorderTest onRecordingComplete={setAudioBlob} />
+            </FieldContent>
+          </Field>
+        )}
 
         {/* Title */}
         <Field>
-          <FieldLabel>제목</FieldLabel>
+          <FieldLabel>제목 (선택)</FieldLabel>
           <Input {...register('title')} placeholder="제목을 입력하세요 (최대 60자)" />
           {errors.title && <FieldError>{errors.title.message}</FieldError>}
         </Field>

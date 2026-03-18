@@ -11,10 +11,12 @@ interface RawMePost {
   id: string
   title: string
   thumbnail_url: string | null
-  category: string
   created_at: string
   author: {
     username: string
+  } | null
+  categories: {
+    label: string
   } | null
   post_likes: { count: number }[]
   comments: { count: number }[]
@@ -48,9 +50,9 @@ export const MePage = async () => {
       id,
       title,
       thumbnail_url,
-      category,
       created_at,
       author:profiles!posts_author_id_fkey(username),
+      categories(label),
       post_likes(count),
       comments(count)
     `)

@@ -65,7 +65,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 2. 프로필 정보 DB 업데이트
-    const updateData: any = {
+    interface ProfileUpdateData {
+      username: string;
+      updated_at: string;
+      avatar_url?: string;
+    }
+
+    const updateData: ProfileUpdateData = {
       username,
       updated_at: new Date().toISOString(),
     };
