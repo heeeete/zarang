@@ -7,13 +7,32 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
-  }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           author_id: string
@@ -133,32 +152,32 @@ export type Database = {
       posts: {
         Row: {
           author_id: string
-          category: string
+          category_id: string
           created_at: string
           description: string | null
           id: string
           thumbnail_url: string | null
-          title: string
+          title: string | null
           updated_at: string
         }
         Insert: {
           author_id: string
-          category: string
+          category_id: string
           created_at?: string
           description?: string | null
           id?: string
           thumbnail_url?: string | null
-          title: string
+          title?: string | null
           updated_at?: string
         }
         Update: {
           author_id?: string
-          category?: string
+          category_id?: string
           created_at?: string
           description?: string | null
           id?: string
           thumbnail_url?: string | null
-          title?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -169,6 +188,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -176,18 +202,21 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          updated_at: string | null
           username: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           id: string
+          updated_at?: string | null
           username: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          updated_at?: string | null
           username?: string
         }
         Relationships: []

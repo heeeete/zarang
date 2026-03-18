@@ -6,11 +6,11 @@ import { PostCard } from '@/src/entities/post/ui/PostCard'
 import { Loader2 } from 'lucide-react'
 
 // 게시글 데이터 타입 정의
-interface HomePost {
+export interface HomePost {
   id: string
-  title: string
+  title: string | null
   thumbnail_url: string | null
-  category: string
+  categories: { label: string } | null
   created_at: string
   author: {
     username: string
@@ -22,11 +22,11 @@ interface HomePost {
 }
 
 // Supabase 원시 데이터 타입 정의
-interface RawPost {
+export interface RawPost {
   id: string
-  title: string
+  title: string | null
   thumbnail_url: string | null
-  category: string
+  categories: { label: string } | null
   created_at: string
   author: {
     username: string
@@ -72,9 +72,9 @@ export const HomeFeed = ({ initialPosts }: HomeFeedProps) => {
           id,
           title,
           thumbnail_url,
-          category,
           created_at,
           author:profiles!posts_author_id_fkey(username),
+          categories(label),
           post_likes(count),
           comments(count)
         `)
@@ -93,7 +93,7 @@ export const HomeFeed = ({ initialPosts }: HomeFeedProps) => {
         id: post.id,
         title: post.title,
         thumbnail_url: post.thumbnail_url,
-        category: post.category,
+        categories: post.categories,
         created_at: post.created_at,
         author: post.author || { username: '알 수 없음' },
         _count: {

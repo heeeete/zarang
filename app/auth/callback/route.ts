@@ -1,30 +1,33 @@
-import { NextResponse } from 'next/server'
-// The client you created from the server-side integration instructions
-import { createClient } from '@/src/shared/lib/supabase/server'
+import { NextResponse } from 'next/server';
+import { createClient } from '@/src/shared/lib/supabase/server';
 
+/**
+ * 소셜 로그인 완료 후 Supabase가 인증 코드를 보내주는 콜백 라우트입니다.
+ */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  // if "next" is in search params, use it as the redirection URL
-  const next = searchParams.get('next') ?? '/'
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/';
 
   if (code) {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-      if (isLocalEnv) {
-        // we can skip the host check and use the origin directly
-        return NextResponse.redirect(`${origin}${next}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
-      } else {
-        return NextResponse.redirect(`${origin}${next}`)
+      // 1. x-forwarded-host 헤더 확인 (ngrok이나 프록시 사용 시 실제 주소)
+      const forwardedHost = request.headers.get('x-forwarded-host');
+      const forwardedProto = request.headers.get('x-forwarded-proto') || 'http';
+      
+      // 2. 만약 프록시 주소가 있다면 그 주소를 사용하고, 없으면 현재 요청의 origin을 사용합니다.
+      if (forwardedHost) {
+        return NextResponse.redirect(`${forwardedProto}://${forwardedHost}${next}`);
       }
+      
+      // 3. 일반 IP 접속이나 localhost 접속 시에는 들어온 주소 그대로 리다이렉트합니다.
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // 인증 실패 시 에러 페이지로 이동
+  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }

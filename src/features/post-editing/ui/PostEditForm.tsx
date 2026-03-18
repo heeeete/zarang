@@ -5,7 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Loader2Icon, ImageIcon, XCircleIcon, GripVertical } from 'lucide-react';
+import { Loader2Icon, ImageIcon, XCircleIcon, GripVertical, Mic } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import { Input } from '@/src/shared/ui/input';
 import { Textarea } from '@/src/shared/ui/textarea';
@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/src/shared/ui/select';
 import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
-import { createPostSchema, CATEGORIES, type CreatePostInput } from '../../post-creation/model/schema';
+import { createPostSchema, type CreatePostInput, type Category } from '../../post-creation/model/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { VoiceRecorderTest } from '../../post-creation/ui/VoiceRecorderTest';
 
 // DnD Kit Imports
 import {
@@ -86,7 +87,7 @@ const SortableEditableImageItem = ({
         src={item.url}
         alt={`preview-${index}`}
         fill
-        className="object-cover"
+        className="object-cover transition-transform duration-500 hover:scale-105"
         unoptimized
       />
       
@@ -119,25 +120,27 @@ const SortableEditableImageItem = ({
 interface PostEditFormProps {
   post: {
     id: string;
-    title: string;
+    title: string | null;
     description: string | null;
-    category: string;
+    category_id: string;
+    audio_url?: string | null;
     images: Array<{
       id: string;
       image_url: string;
       storage_path: string;
     }>;
   };
+  categories: Category[];
 }
 
 /**
  * 게시글 수정을 위한 폼 컴포넌트입니다.
- * 이미지 수정(추가/삭제/순서변경) 기능을 포함합니다.
+ * 이미지 수정(추가/삭제/순서변경) 및 음성 녹음 수정을 포함합니다.
  */
-export const PostEditForm = ({ post }: PostEditFormProps) => {
+export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Combine all images into a single sorted list
+  // 이미지 관리
   const [imageItems, setImageItems] = useState<EditableImageItem[]>(
     post.images.map(img => ({
       id: img.id,
@@ -146,8 +149,13 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
       storage_path: img.storage_path
     }))
   );
-  
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
+
+  // 오디오 관리
+  const [hasExistingAudio] = useState(!!post.audio_url);
+  const [deleteExistingAudio, setDeleteExistingAudio] = useState(false);
+  const [newAudioBlob, setNewAudioBlob] = useState<Blob | null>(null);
+
   const router = useRouter();
 
   // DnD Sensors
@@ -167,18 +175,21 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
-      title: post.title,
+      title: post.title || '',
       description: post.description || '',
-      category: post.category as CreatePostInput['category'],
-      images: [{}], // Initial hack
+      category_id: post.category_id as CreatePostInput['category_id'],
+      images: [{}],
     },
   });
 
-  // Update validation whenever imageItems changes
+  const selectedCategoryId = watch('category_id');
+  const isKeyboardCategory = categories.find(c => c.id === selectedCategoryId)?.slug === 'keyboard';
+
   useEffect(() => {
     setValue('images', new Array(imageItems.length).fill({}), { shouldValidate: true });
   }, [imageItems, setValue]);
@@ -215,7 +226,6 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
       setImageItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
@@ -229,25 +239,27 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('title', data.title);
+      formData.append('title', data.title || '');
       formData.append('description', data.description || '');
-      formData.append('category', data.category);
+      formData.append('category_id', data.category_id);
       
-      // Filter image lists for backend
+      // 이미지 관리 데이터
       const remainingExistingIds = imageItems
         .filter(item => item.type === 'existing')
         .map(item => item.id);
-      
       const newFiles = imageItems
         .filter(item => item.type === 'new')
         .map(item => item.file as File);
 
       formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
       formData.append('remainingImageIds', JSON.stringify(remainingExistingIds));
+      newFiles.forEach((file) => formData.append('newImages', file));
 
-      newFiles.forEach((file) => {
-        formData.append('newImages', file);
-      });
+      // 오디오 관리 데이터
+      formData.append('deleteAudio', deleteExistingAudio.toString());
+      if (newAudioBlob) {
+        formData.append('audio', newAudioBlob, 'recording.wav');
+      }
 
       const response = await fetch(`/api/posts/${post.id}`, {
         method: 'PATCH',
@@ -276,115 +288,103 @@ export const PostEditForm = ({ post }: PostEditFormProps) => {
         <Field>
           <FieldLabel>사진 ({imageItems.length}/10)</FieldLabel>
           <FieldContent>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <div className="grid grid-cols-3 gap-2">
-                <SortableContext
-                  items={imageItems.map(item => item.id)}
-                  strategy={rectSortingStrategy}
-                >
+                <SortableContext items={imageItems.map(item => item.id)} strategy={rectSortingStrategy}>
                   {imageItems.map((item, index) => (
-                    <SortableEditableImageItem
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      onRemove={removeImage}
-                    />
+                    <SortableEditableImageItem key={item.id} item={item} index={index} onRemove={removeImage} />
                   ))}
                 </SortableContext>
-
                 {imageItems.length < 10 && (
-                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted transition-colors hover:border-primary bg-neutral-50 hover:bg-neutral-100">
+                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted transition-colors hover:border-primary bg-neutral-50">
                     <ImageIcon className="size-8 text-muted-foreground" />
-                    <span className="mt-1 text-[10px] text-muted-foreground font-medium">사진 추가</span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
+                    <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
                   </label>
                 )}
               </div>
             </DndContext>
           </FieldContent>
           {errors.images && <FieldError>{errors.images.message}</FieldError>}
-          <p className="mt-2 text-[11px] text-muted-foreground italic">
-            * 사진을 드래그해서 순서를 바꿀 수 있어요. 첫 번째 사진이 대표 사진이 돼요.
-          </p>
         </Field>
 
         {/* Category */}
         <Field>
           <FieldLabel>카테고리</FieldLabel>
           <Controller
-            name="category"
+            name="category_id"
             control={control}
             render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-              >
+              <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택해주세요">
-                    {CATEGORIES.find((cat) => cat.value === field.value)?.label}
+                    {categories.find((cat) => cat.id === field.value)?.label}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.category && <FieldError>{errors.category.message}</FieldError>}
+          {errors.category_id && <FieldError>{errors.category_id.message}</FieldError>}
         </Field>
+
+        {/* Audio (ASMR) - 키보드 카테고리일 때만 표시 */}
+        {isKeyboardCategory && (
+          <Field>
+            <FieldLabel>타건음 (ASMR)</FieldLabel>
+            <FieldContent>
+              <div className="flex flex-col gap-3">
+                {hasExistingAudio && !deleteExistingAudio && !newAudioBlob && (
+                  <div className="bg-neutral-50 rounded-xl p-3 border flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase">
+                      <Mic className="size-3" /> Existing ASMR
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setDeleteExistingAudio(true)}
+                      className="text-[10px] text-red-500 font-medium hover:underline"
+                    >
+                      삭제하기
+                    </button>
+                  </div>
+                )}
+                
+                {(deleteExistingAudio || !hasExistingAudio || newAudioBlob) && (
+                  <VoiceRecorderTest onRecordingComplete={setNewAudioBlob} />
+                )}
+                
+                {deleteExistingAudio && !newAudioBlob && (
+                  <p className="text-[10px] text-amber-600 font-medium px-1">
+                    * 기존 녹음이 삭제될 예정이에요. 새로 녹음할 수도 있어요.
+                  </p>
+                )}
+              </div>
+            </FieldContent>
+          </Field>
+        )}
 
         {/* Title */}
         <Field>
-          <FieldLabel>제목</FieldLabel>
-          <Input {...register('title')} placeholder="제목을 입력하세요 (최대 60자)" />
+          <FieldLabel>제목 (선택)</FieldLabel>
+          <Input {...register('title')} placeholder="제목을 입력하세요" />
           {errors.title && <FieldError>{errors.title.message}</FieldError>}
         </Field>
 
         {/* Description */}
         <Field>
           <FieldLabel>설명 (선택)</FieldLabel>
-          <Textarea
-            {...register('description')}
-            placeholder="취향 아이템에 대해 들려주세요 (최대 500자)"
-            className="min-h-[150px] resize-none text-sm"
-          />
+          <Textarea {...register('description')} placeholder="아이템에 대해 들려주세요" className="min-h-[150px] resize-none text-sm" />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
       </FieldGroup>
 
       <div className="flex gap-3 mt-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="flex-1 h-12"
-          onClick={() => router.back()}
-        >
-          취소
-        </Button>
+        <Button type="button" variant="outline" size="lg" className="flex-1 h-12" onClick={() => router.back()}>취소</Button>
         <Button type="submit" size="lg" disabled={isSubmitting} className="flex-1 h-12 text-base font-bold shadow-lg shadow-primary/20">
-          {isSubmitting ? (
-            <>
-              <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />
-              수정 중...
-            </>
-          ) : (
-            '수정완료'
-          )}
+          {isSubmitting ? <><Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> 저장 중...</> : '수정완료'}
         </Button>
       </div>
     </form>

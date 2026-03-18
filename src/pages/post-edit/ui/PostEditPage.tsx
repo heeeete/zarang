@@ -4,11 +4,12 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/src/shared/ui/button';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
+import { Category } from '@/src/features/post-creation/model/schema';
 
 interface PostEditPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -25,14 +26,24 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
     redirect('/login');
   }
 
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select('*, images:post_images(*)')
-    .eq('id', id)
-    .order('sort_order', { foreignTable: 'post_images', ascending: true })
-    .single();
+  // 게시글 정보와 카테고리 목록을 가져옵니다.
+  const [postResponse, categoriesResponse] = await Promise.all([
+    supabase
+      .from('posts')
+      .select('*, images:post_images(*)')
+      .eq('id', id)
+      .order('sort_order', { foreignTable: 'post_images', ascending: true })
+      .single(),
+    supabase
+      .from('categories')
+      .select('id, slug, label')
+      .order('sort_order', { ascending: true })
+  ]);
 
-  if (error || !post) {
+  const post = postResponse.data;
+  const categories = categoriesResponse.data;
+
+  if (postResponse.error || !post) {
     notFound();
   }
 
@@ -54,11 +65,11 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
           <ChevronLeft className="h-6 w-6" />
         </Button>
         <h2 className="text-sm font-semibold">게시글 수정</h2>
-        <div className="w-10" /> {/* Balance the header */}
+        <div className="w-10" />
       </header>
 
-      <main className="flex-1 overflow-y-auto">
-        <PostEditForm post={post} />
+      <main className="flex-1 overflow-y-auto pb-10">
+        <PostEditForm post={post} categories={(categories as Category[]) || []} />
       </main>
     </div>
   );
