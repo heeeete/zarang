@@ -1,16 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/src/shared/lib/supabase/client';
 import { Home, PlusSquare, User } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const BottomNav = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleWriteClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      router.push('/login?next=/write');
+    }
+  };
 
   const navItems = [
     { href: '/', icon: Home, label: '홈' },
-    { href: '/write', icon: PlusSquare, label: '글쓰기' },
+    { 
+      href: '/write', 
+      icon: PlusSquare, 
+      label: '자랑하기',
+      onClick: handleWriteClick 
+    },
     { href: '/me', icon: User, label: '마이' },
   ];
 
@@ -25,6 +58,7 @@ export const BottomNav = () => {
             <li key={item.href}>
               <Link
                 href={item.href}
+                onClick={item.onClick}
                 className={cn(
                   'flex flex-col items-center gap-1 transition-colors',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'

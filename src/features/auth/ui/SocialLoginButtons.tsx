@@ -1,10 +1,13 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/src/shared/lib/supabase/client'
 import { Button } from '@/src/shared/ui/button'
 
 export const SocialLoginButtons = () => {
   const supabase = createClient()
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') || '/'
 
   const handleLogin = async (provider: 'google' | 'kakao' | 'naver') => {
     // 디버깅을 위해 전달된 프로바이더 확인
@@ -13,7 +16,7 @@ export const SocialLoginButtons = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     })
 
