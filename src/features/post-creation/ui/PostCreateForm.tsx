@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -29,12 +29,14 @@ export const PostCreateForm = () => {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
   } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
       title: '',
       description: '',
+      category: '' as any,
       images: [],
     },
   });
@@ -149,22 +151,31 @@ export const PostCreateForm = () => {
         {/* Category */}
         <Field>
           <FieldLabel>카테고리</FieldLabel>
-          <Select
-            onValueChange={(value) =>
-              setValue('category', value as CreatePostInput['category'], { shouldValidate: true })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="카테고리를 선택해주세요" />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Controller
+            name="category"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="카테고리를 선택해주세요">
+                    {CATEGORIES.find((cat) => cat.value === field.value)?.label}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.category && <FieldError>{errors.category.message}</FieldError>}
         </Field>
 

@@ -20,9 +20,7 @@ export const createPostSchema = z.object({
     .max(500, '설명은 최대 500자까지 가능합니다.')
     .optional()
     .or(z.literal('')),
-  category: z.enum(['keyboard', 'mouse', 'desk-setup', 'figure', 'etc'], {
-    errorMap: () => ({ message: '카테고리를 선택해주세요.' }),
-  }),
+  category: z.string().min(1, '카테고리를 선택해주세요.'),
   // For client-side form handling, we might use File objects
   images: z
     .array(z.any()) // We'll validate it's a File array in the component or refined schema
