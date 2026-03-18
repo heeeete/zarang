@@ -20,6 +20,23 @@ interface PostDetailsPageProps {
   };
 }
 
+interface DetailImage {
+  id: string
+  image_url: string
+  width?: number | null
+  height?: number | null
+}
+
+interface DetailComment {
+  id: string
+  content: string
+  created_at: string
+  author: {
+    username: string
+    avatar_url: string | null
+  } | null
+}
+
 /**
  * 게시글 상세 페이지 컴포넌트입니다 (서버 컴포넌트).
  * 게시글 본문, 이미지 캐러셀, 좋아요/댓글 섹션을 포함합니다.
@@ -34,7 +51,6 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   } = await supabase.auth.getUser();
 
   // 게시글 정보, 작성자 정보, 이미지 목록, 좋아요 수, 댓글 목록을 한 번에 가져옵니다.
-  // 서버 측에서 이미지 순서(sort_order)와 댓글 순서(created_at)를 정렬합니다.
   const { data: post, error } = await supabase
     .from('posts')
     .select(
@@ -100,7 +116,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
       </header>
 
       {/* 이미지 갤러리 (라이트박스 포함) */}
-      <PostImageGallery images={post.images} postTitle={post.title} />
+      <PostImageGallery images={post.images as DetailImage[]} postTitle={post.title} />
 
       {/* 게시글 본문 섹션 */}
       <div className="flex flex-col gap-5 p-5">
@@ -165,13 +181,13 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                 </p>
               </div>
             ) : (
-              post.comments?.map((comment: any) => (
+              post.comments?.map((comment: DetailComment) => (
                 <div key={comment.id} className="flex gap-3.5">
                   <div className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full border bg-muted">
                     {comment.author?.avatar_url ? (
                       <Image
                         src={getOptimizedImageUrl(comment.author.avatar_url, 64) || ''}
-                        alt={comment.author.username}
+                        alt={comment.author.username || 'commenter'}
                         fill
                         className="object-cover"
                       />
