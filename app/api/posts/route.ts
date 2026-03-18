@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/src/shared/lib/supabase/server'
 import { createAdminClient } from '@/src/shared/lib/supabase/admin'
 import { v4 as uuidv4 } from 'uuid'
+import sharp from 'sharp'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -41,13 +42,20 @@ export async function POST(request: NextRequest) {
     const uploadedImages = []
     for (let i = 0; i < images.length; i++) {
       const image = images[i]
+      const buffer = Buffer.from(await image.arrayBuffer())
+      
+      // sharp로 이미지 메타데이터(넓이, 높이) 추출
+      const metadata = await sharp(buffer).metadata()
+      const width = metadata.width || null
+      const height = metadata.height || null
+
       const fileExt = image.name.split('.').pop()
       const fileName = `${i}_${uuidv4()}.${fileExt}`
       const storagePath = `post-images/${user.id}/${post.id}/${fileName}`
 
       const { error: storageError } = await adminSupabase.storage
         .from('post-images')
-        .upload(storagePath, image, {
+        .upload(storagePath, buffer, {
           contentType: image.type,
           upsert: false,
         })
@@ -65,6 +73,8 @@ export async function POST(request: NextRequest) {
           image_url: publicUrl,
           storage_path: storagePath,
           sort_order: i,
+          width,
+          height,
         })
         .select()
         .single()

@@ -19,7 +19,6 @@ export type Database = {
           author_id: string
           content: string
           created_at: string
-          deleted_at: string | null
           id: string
           post_id: string
           updated_at: string
@@ -28,7 +27,6 @@ export type Database = {
           author_id: string
           content: string
           created_at?: string
-          deleted_at?: string | null
           id?: string
           post_id: string
           updated_at?: string
@@ -37,7 +35,6 @@ export type Database = {
           author_id?: string
           content?: string
           created_at?: string
-          deleted_at?: string | null
           id?: string
           post_id?: string
           updated_at?: string
@@ -62,27 +59,33 @@ export type Database = {
       post_images: {
         Row: {
           created_at: string
+          height: number | null
           id: string
           image_url: string
           post_id: string
           sort_order: number
           storage_path: string
+          width: number | null
         }
         Insert: {
           created_at?: string
+          height?: number | null
           id?: string
           image_url: string
           post_id: string
           sort_order?: number
           storage_path: string
+          width?: number | null
         }
         Update: {
           created_at?: string
+          height?: number | null
           id?: string
           image_url?: string
           post_id?: string
           sort_order?: number
           storage_path?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -132,7 +135,6 @@ export type Database = {
           author_id: string
           category: string
           created_at: string
-          deleted_at: string | null
           description: string | null
           id: string
           thumbnail_url: string | null
@@ -143,7 +145,6 @@ export type Database = {
           author_id: string
           category: string
           created_at?: string
-          deleted_at?: string | null
           description?: string | null
           id?: string
           thumbnail_url?: string | null
@@ -154,7 +155,6 @@ export type Database = {
           author_id?: string
           category?: string
           created_at?: string
-          deleted_at?: string | null
           description?: string | null
           id?: string
           thumbnail_url?: string | null

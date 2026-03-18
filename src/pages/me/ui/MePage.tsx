@@ -51,7 +51,6 @@ export const MePage = async () => {
       comments(count)
     `)
     .eq('author_id', user.id)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   const typedPosts = (posts as unknown as any[])?.map(post => ({
