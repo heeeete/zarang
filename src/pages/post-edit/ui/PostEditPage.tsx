@@ -29,7 +29,6 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
     .from('posts')
     .select('*, images:post_images(*)')
     .eq('id', id)
-    .is('deleted_at', null)
     .order('sort_order', { foreignTable: 'post_images', ascending: true })
     .single();
 

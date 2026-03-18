@@ -33,10 +33,13 @@ interface PostActionMenuProps {
 export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  console.log(isAlertOpen);
   const router = useRouter();
 
   const handleDelete = async () => {
+    setIsAlertOpen(false); // 즉시 다이얼로그를 닫아 반응을 보여줍니다.
     setIsDeleting(true);
+
     try {
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
@@ -44,7 +47,7 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || '삭제에 실패했습니다.');
+        throw new Error(result.error || '삭제하지 못했어요.');
       }
 
       toast.success('게시글을 삭제했어요.');
@@ -61,7 +64,11 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost" size="icon" className="-mr-2 hover:bg-transparent text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-mr-2 text-muted-foreground hover:bg-transparent hover:text-foreground"
+            >
               {isDeleting ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
@@ -78,7 +85,7 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => setIsAlertOpen(true)}
+            onClick={() => setIsAlertOpen(true)}
             disabled={isDeleting}
           >
             <Trash2 className="mr-2 h-4 w-4" />
@@ -90,7 +97,7 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="flex items-center gap-2 text-destructive mb-2">
+            <div className="mb-2 flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               <AlertDialogTitle>게시글 삭제</AlertDialogTitle>
             </div>
@@ -100,14 +107,7 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-              disabled={isDeleting}
-            >
+            <AlertDialogAction onClick={handleDelete} variant="destructive" disabled={isDeleting}>
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : '삭제하기'}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -56,7 +56,6 @@ export default async function HomePage() {
       post_likes(count),
       comments(count)
     `)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .range(0, PAGE_SIZE - 1)
 

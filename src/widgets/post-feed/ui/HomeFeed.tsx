@@ -78,7 +78,6 @@ export const HomeFeed = ({ initialPosts }: HomeFeedProps) => {
           post_likes(count),
           comments(count)
         `)
-        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .range(from, to)
 
