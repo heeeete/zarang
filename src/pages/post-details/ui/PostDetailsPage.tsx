@@ -11,6 +11,7 @@ import { CATEGORIES } from '@/src/features/post-creation/model/schema';
 import { LikeButton } from '@/src/features/like-post/ui/LikeButton';
 import { CommentInput } from '@/src/features/comment-post/ui/CommentInput';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
+import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu';
 
 interface PostDetailsPageProps {
   params: {
@@ -84,10 +85,16 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <h2 className="max-w-[200px] truncate text-sm font-semibold">{post.title}</h2>
-        <Button variant="ghost" size="icon" className="-mr-2 hover:bg-transparent">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <h2 className="max-w-[160px] truncate text-sm font-semibold">{post.title}</h2>
+        <div className="flex items-center gap-1">
+          {user?.id === post.author_id ? (
+            <PostActionMenu postId={id} />
+          ) : (
+            <Button variant="ghost" size="icon" className="-mr-2 hover:bg-transparent">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </header>
 
       {/* 이미지 캐러셀: 리사이징 최적화 적용 */}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Heart } from 'lucide-react'
 import { cn } from '@/src/shared/lib/utils'
+import { toast } from 'sonner'
 
 interface LikeButtonProps {
   postId: string
@@ -30,8 +31,9 @@ export const LikeButton = ({ postId, initialLikeCount, initialIsLiked }: LikeBut
       
       if (!response.ok) {
         if (response.status === 401) {
-          alert('로그인이 필요한 기능입니다.')
+          toast.error('로그인이 필요한 서비스예요.');
           // Revert
+
           setIsLiked(isLiked)
           setLikeCount(likeCount)
         } else {
