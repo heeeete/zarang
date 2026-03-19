@@ -1,7 +1,7 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PostCreateForm } from '@/src/features/post-creation/ui/PostCreateForm';
-import { Category } from '@/src/features/post-creation/model/schema';
+import { Category } from '@/src/entities/post/model/schema';
 
 /**
  * 게시글 작성 페이지 컴포넌트입니다 (서버 컴포넌트).

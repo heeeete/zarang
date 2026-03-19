@@ -56,7 +56,10 @@ export const PostCard = ({ post }: PostCardProps) => {
         )}
 
         {/* 카테고리 배지 */}
-        <div className="absolute top-2 right-2">
+        <div 
+          className="absolute top-2 right-2"
+          style={{ zIndex: 10 }} // z-index 대신 zIndex 사용
+        >
           <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm border-none shadow-sm text-[10px] font-medium px-2 py-0.5">
             {categoryLabel}
           </Badge>

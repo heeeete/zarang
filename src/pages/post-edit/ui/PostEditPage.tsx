@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/src/shared/ui/button';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
-import { Category } from '@/src/features/post-creation/model/schema';
+import { Category } from '@/src/entities/post/model/schema';
 
 interface PostEditPageProps {
   params: Promise<{
