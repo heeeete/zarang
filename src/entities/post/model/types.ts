@@ -42,6 +42,7 @@ export interface DetailPost extends Post {
     id: string;
     content: string;
     created_at: string;
+    parent_id: string | null;
     author: {
       username: string;
       avatar_url: string | null;

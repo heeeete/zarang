@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const { content } = await request.json();
+    const { content, parent_id } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json({ error: '댓글 내용을 입력해주세요.' }, { status: 400 });
@@ -26,19 +26,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         post_id: postId,
         author_id: user.id,
         content,
+        parent_id: parent_id || null,
       })
       .select()
       .single();
 
-    if (insertError) throw insertError
+    if (insertError) throw insertError;
 
     // 해당 게시글 상세 캐시 무효화 및 관련 페이지 갱신
-    revalidateTag(`post-${postId}`, 'max')
-    revalidatePath(`/posts/${postId}`)
-    revalidatePath('/')
+    revalidateTag(`post-${postId}`, 'max');
+    revalidatePath(`/posts/${postId}`);
+    revalidatePath('/');
 
-    return NextResponse.json({ id: comment.id })
-
+    return NextResponse.json({ id: comment.id });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 500 });

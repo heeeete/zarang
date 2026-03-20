@@ -136,7 +136,7 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
           <Input
             {...register('username')}
             placeholder="사용하실 닉네임을 입력해 주세요"
-            className="h-12 text-sm font-medium"
+            className="h-12 font-medium"
           />
           {errors.username ? (
             <FieldError>{errors.username.message}</FieldError>

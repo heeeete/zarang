@@ -7,7 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/src/shared/ui/badge';
 import { LikeButton } from '@/src/features/like-post/ui/LikeButton';
-import { CommentInput } from '@/src/features/comment-post/ui/CommentInput';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu';
 import { PostImageGallery } from '@/src/entities/post/ui/PostImageGallery';
@@ -15,6 +14,7 @@ import { SubHeader } from '@/src/shared/ui/SubHeader';
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
 import { getPostDetail } from '@/src/entities/post/api/post-api';
 import { DetailPost } from '@/src/entities/post/model/types';
+import { CommentSection } from '@/src/features/comment-post/ui/CommentSection';
 
 interface PostDetailsPageProps {
   params: Promise<{
@@ -55,7 +55,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-white pb-20">
+    <div className="flex min-h-full flex-col bg-white pb-[49px]">
       {/* 상단 헤더: 뒤로가기 버튼만 표시 */}
       <SubHeader
         rightElement={user?.id === post.author_id ? <PostActionMenu postId={id} /> : null}
@@ -113,7 +113,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
           )}
 
           {post.description && (
-            <p className="text-[16px] leading-relaxed whitespace-pre-wrap break-words text-neutral-900">
+            <p className="text-[16px] leading-relaxed break-words whitespace-pre-wrap text-neutral-900">
               {post.description}
             </p>
           )}
@@ -132,55 +132,9 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
           </div>
         </div>
 
-        {/* 댓글 섹션 */}
-        <div className="flex flex-col gap-5">
-          <h3 className="text-base font-bold">댓글 {post.comments?.length || 0}</h3>
-          <div className="flex flex-col gap-6">
-            {post.comments?.length === 0 ? (
-              <div className="py-10 text-center">
-                <p className="text-xs text-muted-foreground">
-                  아직 댓글이 없습니다. 첫 소감을 남겨주세요!
-                </p>
-              </div>
-            ) : (
-              post.comments?.map((comment) => (
-                <div key={comment.id} className="flex gap-3.5">
-                  <div className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full border bg-muted">
-                    {comment.author?.avatar_url ? (
-                      <Image
-                        src={getOptimizedImageUrl(comment.author.avatar_url, 64) || ''}
-                        alt={comment.author.username || 'commenter'}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
-                        <UserIcon className="size-4" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-1.5 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-neutral-900">
-                        {comment.author?.username}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.created_at), { locale: ko })} 전
-                      </span>
-                    </div>
-                    <p className="text-[13px] leading-relaxed break-words text-neutral-800">
-                      {comment.content}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        {/* 댓글 섹션 (클라이언트 컴포넌트로 분리하여 답글 상태 관리) */}
+        <CommentSection post={post} currentUserId={user?.id} />
       </div>
-
-      {/* 댓글 입력창: 화면 하단에 고정 */}
-      <CommentInput postId={id} />
     </div>
   );
 };

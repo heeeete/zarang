@@ -41,6 +41,7 @@ export type Database = {
           id: string
           post_id: string
           updated_at: string
+          parent_id: string | null
         }
         Insert: {
           author_id: string
@@ -49,6 +50,7 @@ export type Database = {
           id?: string
           post_id: string
           updated_at?: string
+          parent_id?: string | null
         }
         Update: {
           author_id?: string
@@ -57,6 +59,7 @@ export type Database = {
           id?: string
           post_id?: string
           updated_at?: string
+          parent_id?: string | null
         }
         Relationships: [
           {
@@ -71,6 +74,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
         ]
