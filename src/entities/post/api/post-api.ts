@@ -1,6 +1,7 @@
-import { Post, RawPostResponse } from '../model/types';
-import { PostFormInput } from '../model/schema';
+import { unstable_cache } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { Post, RawPostResponse, DetailPost } from '../model/types';
+import { PostFormInput } from '../model/schema';
 
 /**
  * 게시글 목록을 조회하는 통합 API입니다.
@@ -24,6 +25,7 @@ export const fetchPostsData = async (
     .select(
       `
       id,
+      author_id,
       description,
       thumbnail_url,
       audio_url,
@@ -59,6 +61,7 @@ export const fetchPostsData = async (
   const rawPosts = (data as unknown as RawPostResponse[]) || [];
   return rawPosts.map((post) => ({
     id: post.id,
+    author_id: post.author_id,
     description: post.description,
     thumbnail_url: post.thumbnail_url,
     audio_url: post.audio_url,
@@ -152,4 +155,45 @@ export const updatePost = async (
   }
 
   return response.json();
+};
+
+/**
+ * 게시글 상세 정보를 조회합니다 (캐싱 적용).
+ * cookies() 등 동적 함수를 포함하는 클라이언트를 인자로 받아 에러를 방지합니다.
+ */
+export const getPostDetail = async (supabase: SupabaseClient, id: string) => {
+  const fetcher = unstable_cache(
+    async (postId: string) => {
+      const { data: post, error } = await supabase
+        .from('posts')
+        .select(
+          `
+          *,
+          author:profiles!posts_author_id_fkey(id, username, avatar_url),
+          categories(label),
+          audio_url,
+          images:post_images(id, image_url, width, height),
+          likes:post_likes(count),
+          comments:comments(
+            *,
+            author:profiles!comments_author_id_fkey(username, avatar_url)
+          )
+        `,
+        )
+        .eq('id', postId)
+        .order('sort_order', { foreignTable: 'post_images', ascending: true })
+        .order('created_at', { foreignTable: 'comments', ascending: true })
+        .single();
+
+      if (error || !post) return null;
+      return post as unknown as DetailPost;
+    },
+    [`post-detail-${id}`],
+    {
+      tags: [`post-${id}`],
+      revalidate: 3600,
+    },
+  );
+
+  return fetcher(id);
 };

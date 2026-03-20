@@ -12,30 +12,14 @@ import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu';
 import { PostImageGallery } from '@/src/entities/post/ui/PostImageGallery';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
-
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
+import { getPostDetail } from '@/src/entities/post/api/post-api';
+import { DetailPost } from '@/src/entities/post/model/types';
 
 interface PostDetailsPageProps {
   params: Promise<{
     id: string;
   }>;
-}
-
-interface DetailImage {
-  id: string;
-  image_url: string;
-  width?: number | null;
-  height?: number | null;
-}
-
-interface DetailComment {
-  id: string;
-  content: string;
-  created_at: string;
-  author: {
-    username: string;
-    avatar_url: string | null;
-  } | null;
 }
 
 /**
@@ -51,30 +35,10 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 게시글 정보, 작성자 정보, 이미지 목록, 좋아요 수, 댓글 목록을 한 번에 가져옵니다.
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select(
-      `
-      *,
-      author:profiles!posts_author_id_fkey(username, avatar_url),
-      categories(label),
-      audio_url,
-      images:post_images(id, image_url, width, height),
-      likes:post_likes(count),
-      comments:comments(
-        *,
-        author:profiles!comments_author_id_fkey(username, avatar_url)
-      )
-    `,
-    )
-    .eq('id', id)
-    .order('sort_order', { foreignTable: 'post_images', ascending: true })
-    .order('created_at', { foreignTable: 'comments', ascending: false })
-    .single();
+  // 캐싱된 게시글 정보를 가져옵니다.
+  const post = (await getPostDetail(supabase, id)) as DetailPost | null;
 
-  if (error || !post) {
-    console.error('게시글 상세 정보 조회 실패:', error);
+  if (!post) {
     notFound();
   }
 
@@ -98,7 +62,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
       />
 
       {/* 이미지 갤러리 (라이트박스 포함) */}
-      <PostImageGallery images={post.images as DetailImage[]} postTitle="자랑거리 이미지" />
+      <PostImageGallery images={post.images} postTitle="자랑거리 이미지" />
 
       {/* 게시글 본문 섹션 */}
       <div className="flex flex-col gap-5 p-5">
@@ -149,7 +113,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
           )}
 
           {post.description && (
-            <p className="text-[16px] leading-relaxed whitespace-pre-wrap text-neutral-900">
+            <p className="text-[16px] leading-relaxed whitespace-pre-wrap break-words text-neutral-900">
               {post.description}
             </p>
           )}
@@ -179,7 +143,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                 </p>
               </div>
             ) : (
-              post.comments?.map((comment: DetailComment) => (
+              post.comments?.map((comment) => (
                 <div key={comment.id} className="flex gap-3.5">
                   <div className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full border bg-muted">
                     {comment.author?.avatar_url ? (
@@ -195,7 +159,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-1 flex-col gap-1.5">
+                  <div className="flex flex-1 flex-col gap-1.5 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-neutral-900">
                         {comment.author?.username}
@@ -204,7 +168,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
                         {formatDistanceToNow(new Date(comment.created_at), { locale: ko })} 전
                       </span>
                     </div>
-                    <p className="text-[13px] leading-relaxed text-neutral-800">
+                    <p className="text-[13px] leading-relaxed break-words text-neutral-800">
                       {comment.content}
                     </p>
                   </div>

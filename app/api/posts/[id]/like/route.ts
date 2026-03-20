@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/shared/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/src/shared/lib/supabase/server';
+import { revalidateTag, revalidatePath } from 'next/cache';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: postId } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: postId } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
   }
 
   try {
@@ -20,7 +20,10 @@ export async function POST(
       .select()
       .eq('post_id', postId)
       .eq('user_id', user.id)
-      .single()
+      .single();
+
+    let resultLiked = false;
+    let resultCount = 0;
 
     if (existingLike) {
       // Unlike
@@ -28,36 +31,44 @@ export async function POST(
         .from('post_likes')
         .delete()
         .eq('post_id', postId)
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
 
-      if (deleteError) throw deleteError
-      
+      if (deleteError) throw deleteError;
+
       const { count } = await supabase
         .from('post_likes')
         .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId)
+        .eq('post_id', postId);
 
-      return NextResponse.json({ liked: false, likeCount: count || 0 })
+      resultLiked = false;
+      resultCount = count || 0;
     } else {
       // Like
-      const { error: insertError } = await supabase
-        .from('post_likes')
-        .insert({
-          post_id: postId,
-          user_id: user.id,
-        })
+      const { error: insertError } = await supabase.from('post_likes').insert({
+        post_id: postId,
+        user_id: user.id,
+      });
 
-      if (insertError) throw insertError
+      if (insertError) throw insertError;
 
       const { count } = await supabase
         .from('post_likes')
         .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId)
+        .eq('post_id', postId);
 
-      return NextResponse.json({ liked: true, likeCount: count || 0 })
+      resultLiked = true;
+      resultCount = count || 0;
     }
+
+    // 해당 게시글 상세 캐시 무효화 및 관련 페이지 갱신
+    revalidateTag(`post-${postId}`, 'max')
+    revalidatePath(`/posts/${postId}`)
+    revalidatePath('/')
+
+    return NextResponse.json({ liked: resultLiked, likeCount: resultCount })
+
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했습니다.'
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
