@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Button } from '@/src/shared/ui/button';
 import { LogIn } from 'lucide-react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const Header = () => {
+  const pathname = usePathname();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -32,6 +34,9 @@ export const Header = () => {
 
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
+
+  // 메인 페이지(/)가 아니면 헤더를 렌더링하지 않습니다.
+  if (pathname !== '/') return null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">

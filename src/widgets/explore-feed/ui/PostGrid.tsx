@@ -1,22 +1,14 @@
-import { ExplorePostCard } from '@/src/entities/post/ui/ExplorePostCard';
-import { ExplorePost } from '../model/types';
+'use client';
+import { PostCard } from '@/src/entities/post/ui/PostCard';
+import { Post } from '@/src/entities/post/model/types';
 import dynamic from 'next/dynamic';
+import PostSkeleton from '@/src/entities/post/ui/PostSkeleton';
 
 const ResponsiveMasonry = dynamic(
   () => import('react-responsive-masonry').then((mod) => mod.ResponsiveMasonry),
   {
     ssr: false,
-    loading: () => (
-      <div className="grid grid-cols-2 gap-[10px]">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="animate-pulse rounded-xl bg-neutral-100"
-            style={{ height: i % 2 === 0 ? '200px' : '260px' }}
-          />
-        ))}
-      </div>
-    ),
+    loading: () => <PostSkeleton />,
   },
 );
 
@@ -24,12 +16,12 @@ const Masonry = dynamic(() => import('react-responsive-masonry').then((mod) => m
   ssr: false,
 });
 
-interface ExplorePostGridProps {
-  posts: ExplorePost[];
+interface PostGridProps {
+  posts: Post[];
   loading: boolean;
 }
 
-export const ExplorePostGrid = ({ posts, loading }: ExplorePostGridProps) => {
+export const PostGrid = ({ posts, loading }: PostGridProps) => {
   if (posts.length === 0 && !loading) {
     return (
       <div className="py-32 text-center text-neutral-400">
@@ -44,7 +36,7 @@ export const ExplorePostGrid = ({ posts, loading }: ExplorePostGridProps) => {
       <ResponsiveMasonry columnsCountBreakPoints={{ 300: 2, 600: 2 }}>
         <Masonry gutter="10px">
           {posts.map((post) => (
-            <ExplorePostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} />
           ))}
         </Masonry>
       </ResponsiveMasonry>

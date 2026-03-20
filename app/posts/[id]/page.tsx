@@ -12,12 +12,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data: post } = await supabase
     .from('posts')
-    .select('title')
+    .select('id')
     .eq('id', id)
     .single()
 
   return {
-    title: post ? `${post.title} - ZARANG` : '게시글 - ZARANG',
+    title: post ? '자랑거리 - ZARANG' : '게시글 - ZARANG',
   }
 }
 

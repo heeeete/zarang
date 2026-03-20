@@ -5,15 +5,15 @@ import { Category } from '@/src/entities/post/model/schema';
 import { useIntersectionObserver } from '@/src/shared/lib/hooks/useIntersectionObserver';
 import { useExploreFilter } from '../model/useExploreFilter';
 import { useExplorePosts } from '../model/useExplorePosts';
-import { ExplorePost } from '../model/types';
+import { Post } from '@/src/entities/post/model/types';
 import { ExploreSearchBar } from './ExploreSearchBar';
 import { CategoryDrawer } from './CategoryDrawer';
-import { ExplorePostGrid } from './ExplorePostGrid';
+import { PostGrid } from './PostGrid';
 import { InfiniteScrollTrigger } from './InfiniteScrollTrigger';
 
 interface ExploreFeedProps {
   categories: Category[];
-  initialPosts: ExplorePost[];
+  initialPosts: Post[];
 }
 
 export const ExploreFeed = ({ categories, initialPosts }: ExploreFeedProps) => {
@@ -51,7 +51,7 @@ export const ExploreFeed = ({ categories, initialPosts }: ExploreFeedProps) => {
 
       {/* Masonry 피드 영역 */}
       <div className="w-full flex-1 px-2 py-3">
-        <ExplorePostGrid posts={posts} loading={loading} />
+        <PostGrid posts={posts} loading={loading} />
         <InfiniteScrollTrigger
           ref={observerRef}
           loading={loading}

@@ -1,7 +1,7 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { ExploreFeed } from '@/src/widgets/explore-feed/ui/ExploreFeed';
 import { Category } from '@/src/entities/post/model/schema';
-import { ExplorePost } from '@/src/widgets/explore-feed/model/types';
+import { fetchPostsData } from '@/src/entities/post/api/post-api';
 
 /**
  * 구경하기 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -11,55 +11,12 @@ export const ExplorePage = async () => {
   const supabase = await createClient();
 
   // 1. 카테고리와 초기 게시글 데이터를 병렬로 가져옵니다.
-  const [categoriesResponse, postsResponse] = await Promise.all([
+  const [categoriesResponse, initialPosts] = await Promise.all([
     supabase.from('categories').select('id, slug, label').order('sort_order', { ascending: true }),
-    supabase
-      .from('posts')
-      .select(
-        `
-        id,
-        title,
-        thumbnail_url,
-        audio_url,
-        images:post_images(width, height),
-        author:profiles!posts_author_id_fkey(username),
-        post_likes(count),
-        comments(count)
-      `,
-      )
-      .order('created_at', { ascending: false })
-      .order('sort_order', { foreignTable: 'post_images', ascending: true })
-      .range(0, 11), // 초기 12개
+    fetchPostsData(supabase, { from: 0, to: 11 }), // 초기 12개
   ]);
 
   const categories = (categoriesResponse.data as Category[]) || [];
-  const rawPosts = postsResponse.data || [];
-
-  interface RawPostData {
-    id: string;
-    title: string | null;
-    thumbnail_url: string | null;
-    audio_url: string | null;
-    images: { width: number | null; height: number | null }[];
-    author: { username: string } | null;
-    post_likes: { count: number }[];
-    comments: { count: number }[];
-  }
-
-  // 데이터 가공: 첫 번째 이미지의 크기와 카운트 정보 사용
-  const initialPosts: ExplorePost[] = (rawPosts as unknown as RawPostData[]).map((post) => ({
-    id: post.id,
-    title: post.title,
-    thumbnail_url: post.thumbnail_url,
-    audio_url: post.audio_url,
-    width: post.images?.[0]?.width || 800,
-    height: post.images?.[0]?.height || 800,
-    author: post.author || { username: '알 수 없음' },
-    _count: {
-      post_likes: post.post_likes?.[0]?.count ?? 0,
-      comments: post.comments?.[0]?.count ?? 0,
-    },
-  }));
 
   return (
     <div className="flex min-h-full flex-col bg-white">

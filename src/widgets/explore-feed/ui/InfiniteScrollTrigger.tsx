@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import PostSkeleton from '@/src/entities/post/ui/PostSkeleton';
 
 interface InfiniteScrollTriggerProps {
   loading: boolean;
@@ -10,21 +10,16 @@ interface InfiniteScrollTriggerProps {
 export const InfiniteScrollTrigger = forwardRef<HTMLDivElement, InfiniteScrollTriggerProps>(
   ({ loading, hasMore, postsCount }, ref) => {
     return (
-      <div ref={ref} className="flex justify-center py-10">
-        {loading && (
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="text-[10px] font-medium text-muted-foreground">취향을 찾아보는 중...</p>
-          </div>
-        )}
+      <div ref={ref} className="justify-center">
+        {loading && <PostSkeleton />}
         {!hasMore && postsCount > 0 && (
-          <p className="text-[10px] text-muted-foreground italic">
-            취향 지도의 끝에 도달했어요! ✨
+          <p className="py-10 text-center text-xs text-muted-foreground italic">
+            축하해요! 모든 게시물을 다 봤어요! 🎉
           </p>
         )}
       </div>
     );
-  }
+  },
 );
 
 InfiniteScrollTrigger.displayName = 'InfiniteScrollTrigger';

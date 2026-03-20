@@ -16,7 +16,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, author_id, description, category_id, thumbnail_url, audio_url, created_at, updated_at')
     .eq('id', id)
     .single()
 
@@ -44,7 +44,6 @@ export async function PATCH(
 
   try {
     const formData = await request.formData()
-    const title = formData.get('title') as string | null
     const description = formData.get('description') as string | null
     const category_id = formData.get('category_id') as string
     
@@ -186,7 +185,6 @@ export async function PATCH(
     const newThumbnailUrl = allImages?.[0]?.image_url || null
 
     interface PostUpdateData {
-      title: string | null;
       description: string | null;
       category_id: string;
       thumbnail_url: string | null;
@@ -196,7 +194,6 @@ export async function PATCH(
     }
 
     const updateData: PostUpdateData = {
-      title: title || null,
       description: description || null,
       category_id,
       thumbnail_url: newThumbnailUrl,

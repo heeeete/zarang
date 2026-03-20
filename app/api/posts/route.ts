@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData()
-    const title = formData.get('title') as string | null
     const description = formData.get('description') as string | null
     const category_id = formData.get('category_id') as string
     const images = formData.getAll('images') as File[]
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
       .insert({
         id: postId,
         author_id: user.id,
-        title: title || null,
         description: description || null,
         category_id,
         audio_url: audioUrl,

@@ -44,7 +44,6 @@ import {
 interface PostEditFormProps {
   post: {
     id: string;
-    title: string | null;
     description: string | null;
     category_id: string;
     audio_url?: string | null;
@@ -77,7 +76,6 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   } = useForm<PostFormInput>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      title: post.title || '',
       description: post.description || '',
       category_id: post.category_id as PostFormInput['category_id'],
       images: new Array(initialImages.length).fill({}),
@@ -226,17 +224,10 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
           </Field>
         )}
 
-        {/* Title */}
-        <Field>
-          <FieldLabel>제목 (선택)</FieldLabel>
-          <Input {...register('title')} placeholder="제목을 입력하세요" />
-          {errors.title && <FieldError>{errors.title.message}</FieldError>}
-        </Field>
-
         {/* Description */}
         <Field>
-          <FieldLabel>설명 (선택)</FieldLabel>
-          <Textarea {...register('description')} placeholder="아이템에 대해 들려주세요" className="min-h-[150px] resize-none text-sm" />
+          <FieldLabel>자랑거리 설명</FieldLabel>
+          <Textarea {...register('description')} placeholder="아이템에 대해 들려주세요" className="min-h-[180px] resize-none text-sm" />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
       </FieldGroup>

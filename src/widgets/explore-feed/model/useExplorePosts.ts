@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { ExplorePost, RawExplorePost } from './types';
+import { Post } from '@/src/entities/post/model/types';
+import { fetchPostsData } from '@/src/entities/post/api/post-api';
 
 export const PAGE_SIZE = 12;
 
@@ -8,11 +9,11 @@ export const PAGE_SIZE = 12;
  * Explore 페이지의 게시물 페칭 및 페이지네이션 로직을 관리하는 훅입니다.
  */
 export const useExplorePosts = (
-  initialPosts: ExplorePost[],
+  initialPosts: Post[],
   categoryId: string | null,
   keyword: string,
 ) => {
-  const [posts, setPosts] = useState<ExplorePost[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialPosts.length === PAGE_SIZE);
   const [loading, setLoading] = useState(false);
@@ -32,60 +33,21 @@ export const useExplorePosts = (
       const to = from + PAGE_SIZE - 1;
 
       try {
-        let query = supabase
-          .from('posts')
-          .select(`
-            id,
-            title,
-            description,
-            thumbnail_url,
-            audio_url,
-            author:profiles!posts_author_id_fkey(username),
-            images:post_images(width, height),
-            post_likes(count),
-            comments(count)
-          `)
-          .order('created_at', { ascending: false })
-          .order('sort_order', { foreignTable: 'post_images', ascending: true })
-          .range(from, to);
-
-        if (categoryId) {
-          query = query.eq('category_id', categoryId);
-        }
-
-        if (keyword.trim()) {
-          query = query.or(
-            `title.ilike.%${keyword}%,description.ilike.%${keyword}%`
-          );
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-
-        const rawPosts = (data as any) || [];
-        const newPosts: ExplorePost[] = rawPosts.map((post: any) => ({
-          id: post.id,
-          title: post.title,
-          thumbnail_url: post.thumbnail_url,
-          audio_url: post.audio_url,
-          width: post.images?.[0]?.width || 800,
-          height: post.images?.[0]?.height || 800,
-          author: { username: post.author?.username || '알 수 없음' },
-          _count: {
-            post_likes: post.post_likes?.[0]?.count ?? 0,
-            comments: post.comments?.[0]?.count ?? 0,
-          },
-        }));
+        const newPosts = await fetchPostsData(supabase, {
+          from,
+          to,
+          categoryId,
+          keyword,
+        });
 
         if (isReset) {
           setPosts(newPosts);
           setPage(1);
-          setHasMore(rawPosts.length === PAGE_SIZE);
+          setHasMore(newPosts.length === PAGE_SIZE);
         } else {
           setPosts((prev) => [...prev, ...newPosts]);
           setPage(pageNum + 1);
-          setHasMore(rawPosts.length === PAGE_SIZE);
+          setHasMore(newPosts.length === PAGE_SIZE);
         }
       } catch (err) {
         console.error('구경하기 데이터 로드 실패:', err);

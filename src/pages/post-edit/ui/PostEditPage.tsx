@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/src/shared/ui/button';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
 import { Category } from '@/src/entities/post/model/schema';
+import { SubHeader } from '@/src/shared/ui/SubHeader';
 
 interface PostEditPageProps {
   params: Promise<{
@@ -54,19 +55,7 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
 
   return (
     <div className="flex min-h-full flex-col bg-white">
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-white/90 px-4 backdrop-blur-md">
-        <Button
-          variant="ghost"
-          size="icon"
-          render={<Link href={`/posts/${id}`} />}
-          className="-ml-2 hover:bg-transparent"
-          nativeButton={false}
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <h2 className="text-sm font-semibold">게시글 수정</h2>
-        <div className="w-10" />
-      </header>
+      <SubHeader title="게시글 수정" />
 
       <main className="flex-1 overflow-y-auto pb-10">
         <PostEditForm post={post} categories={(categories as Category[]) || []} />

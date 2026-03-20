@@ -63,7 +63,6 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
   } = useForm<PostFormInput>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      title: '',
       description: '',
       category_id: '' as PostFormInput['category_id'],
       images: [],
@@ -190,20 +189,13 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
           </Field>
         )}
 
-        {/* Title */}
-        <Field>
-          <FieldLabel>제목 (선택)</FieldLabel>
-          <Input {...register('title')} placeholder="제목을 입력하세요" />
-          {errors.title && <FieldError>{errors.title.message}</FieldError>}
-        </Field>
-
         {/* Description */}
         <Field>
-          <FieldLabel>설명 (선택)</FieldLabel>
+          <FieldLabel>자랑거리 설명</FieldLabel>
           <Textarea
             {...register('description')}
             placeholder="취향 아이템에 대해 들려주세요"
-            className="min-h-[150px] resize-none text-sm"
+            className="min-h-[180px] resize-none text-sm"
           />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>

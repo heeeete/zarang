@@ -2,16 +2,16 @@ import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MessageCircle, ChevronLeft, User as UserIcon, Mic } from 'lucide-react';
+import { MessageCircle, User as UserIcon, Mic } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/src/shared/ui/button';
 import { Badge } from '@/src/shared/ui/badge';
 import { LikeButton } from '@/src/features/like-post/ui/LikeButton';
 import { CommentInput } from '@/src/features/comment-post/ui/CommentInput';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu';
 import { PostImageGallery } from '@/src/entities/post/ui/PostImageGallery';
+import { SubHeader } from '@/src/shared/ui/SubHeader';
 
 interface PostDetailsPageProps {
   params: Promise<{
@@ -92,34 +92,21 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
 
   return (
     <div className="flex min-h-full flex-col bg-white pb-20">
-      {/* 상단 헤더: 뒤로가기 및 제목 표시 */}
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-white/90 px-4 backdrop-blur-md">
-        <Button
-          variant="ghost"
-          size="icon"
-          render={<Link href="/" />}
-          className="-ml-2 hover:bg-transparent"
-          nativeButton={false}
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <h2 className="max-w-[160px] truncate text-sm font-semibold">{post.title}</h2>
-        <div className="flex items-center gap-1">
-          {user?.id === post.author_id ? (
-            <PostActionMenu postId={id} />
-          ) : (
-            <div className="size-8" />
-          )}
-        </div>
-      </header>
+      {/* 상단 헤더: 뒤로가기 버튼만 표시 */}
+      <SubHeader
+        rightElement={user?.id === post.author_id ? <PostActionMenu postId={id} /> : null}
+      />
 
       {/* 이미지 갤러리 (라이트박스 포함) */}
-      <PostImageGallery images={post.images as DetailImage[]} postTitle={post.title} />
+      <PostImageGallery images={post.images as DetailImage[]} postTitle="자랑거리 이미지" />
 
       {/* 게시글 본문 섹션 */}
       <div className="flex flex-col gap-5 p-5">
         <div className="flex items-center justify-between">
-          <Link href={post.author_id === user?.id ? '/me' : `/users/${post.author_id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <Link
+            href={post.author_id === user?.id ? '/me' : `/users/${post.author_id}`}
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+          >
             <div className="relative h-9 w-9 overflow-hidden rounded-full border bg-muted">
               {post.author?.avatar_url ? (
                 <Image
@@ -147,12 +134,10 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h1 className="text-2xl leading-tight font-extrabold tracking-tight">{post.title || '제목 없음'}</h1>
-          
           {/* ASMR 오디오 플레이어 */}
           {post.audio_url && (
-            <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-100 mt-1 shadow-sm">
-              <p className="text-[10px] font-bold text-neutral-400 mb-2 uppercase tracking-widest flex items-center gap-1.5">
+            <div className="mt-1 rounded-xl border border-neutral-100 bg-neutral-50 p-3 shadow-sm">
+              <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-neutral-400 uppercase">
                 <Mic className="size-3" /> ASMR SOUND
               </p>
               <audio src={post.audio_url} controls className="h-8 w-full" />
@@ -160,7 +145,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
           )}
 
           {post.description && (
-            <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-neutral-800">
+            <p className="text-[16px] leading-relaxed whitespace-pre-wrap text-neutral-900">
               {post.description}
             </p>
           )}
