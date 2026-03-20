@@ -33,7 +33,6 @@ interface PostActionMenuProps {
 export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  console.log(isAlertOpen);
   const router = useRouter();
 
   const handleDelete = async () => {

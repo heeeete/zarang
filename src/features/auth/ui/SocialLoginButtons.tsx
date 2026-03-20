@@ -11,14 +11,7 @@ export const SocialLoginButtons = () => {
   const next = searchParams?.get('next') || '/';
 
   const handleLogin = async (provider: 'google' | 'kakao' | 'naver') => {
-    console.log('--- LOGIN START ---');
-    console.log('provider:', provider);
-    console.log('origin:', window.location.origin);
-    console.log('next:', next);
-
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-
-    console.log('redirectTo:', redirectTo);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as Provider,

@@ -1,4 +1,78 @@
+import { Post, RawPostResponse } from '../model/types';
 import { PostFormInput } from '../model/schema';
+
+/**
+ * 게시글 목록을 조회하는 통합 API입니다.
+ * 서버 컴포넌트와 클라이언트 컴포넌트 모두에서 재사용 가능합니다.
+ */
+export const fetchPostsData = async (
+  supabase: any,
+  options: {
+    from: number;
+    to: number;
+    categoryId?: string | null;
+    keyword?: string;
+    authorId?: string;
+    useView?: boolean; // explore_posts_with_author 뷰 사용 여부
+  },
+): Promise<Post[]> => {
+  const { from, to, categoryId, keyword, authorId, useView = true } = options;
+
+  let query = supabase
+    .from(useView ? 'explore_posts_with_author' : 'posts')
+    .select(
+      `
+      id,
+      description,
+      thumbnail_url,
+      audio_url,
+      ${useView ? 'author_username,' : 'author:profiles!posts_author_id_fkey(username),'}
+      images:post_images(width, height),
+      post_likes:post_likes!post_likes_post_id_fkey(count),
+      comments:comments!comments_post_id_fkey(count),
+      created_at
+    `,
+    )
+    .order('created_at', { ascending: false })
+    .order('sort_order', { foreignTable: 'post_images', ascending: true })
+    .range(from, to);
+
+  if (categoryId) {
+    query = query.eq('category_id', categoryId);
+  }
+
+  if (authorId) {
+    query = query.eq('author_id', authorId);
+  }
+
+  if (keyword?.trim()) {
+    query = query.or(
+      `description.ilike.%${keyword}%,${useView ? 'author_username' : 'profiles.username'}.ilike.%${keyword}%`,
+    );
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  const rawPosts = (data as unknown as RawPostResponse[]) || [];
+  return rawPosts.map((post) => ({
+    id: post.id,
+    description: post.description,
+    thumbnail_url: post.thumbnail_url,
+    audio_url: post.audio_url,
+    created_at: post.created_at,
+    width: post.images?.[0]?.width || 800,
+    height: post.images?.[0]?.height || 800,
+    author: {
+      username: useView ? post.author_username || '알 수 없음' : post.author?.username || '알 수 없음',
+    },
+    _count: {
+      post_likes: post.post_likes?.[0]?.count ?? 0,
+      comments: post.comments?.[0]?.count ?? 0,
+    },
+  }));
+};
 
 /**
  * 게시글을 생성합니다.
@@ -9,12 +83,10 @@ export const createPost = async (
   audioFile: Blob | File | null,
 ) => {
   const formData = new FormData();
-  formData.append('title', data.title || '');
   formData.append('description', data.description || '');
   formData.append('category_id', data.category_id);
   
   if (audioFile) {
-    // 실제 파일 이름과 타입을 유지하여 모바일/PC 호환성 해결
     const fileName = (audioFile as File).name || 'recording.webm';
     formData.append('audio', audioFile, fileName);
   }
@@ -53,16 +125,13 @@ export const updatePost = async (
   }
 ) => {
   const formData = new FormData();
-  formData.append('title', data.title || '');
   formData.append('description', data.description || '');
   formData.append('category_id', data.category_id);
 
-  // 이미지 관리
   formData.append('deletedImageIds', JSON.stringify(imageOptions.deletedImageIds));
   formData.append('remainingImageIds', JSON.stringify(imageOptions.remainingImageIds));
   imageOptions.newImageFiles.forEach((file) => formData.append('newImages', file));
 
-  // 오디오 관리
   formData.append('deleteAudio', audioOptions.deleteExistingAudio.toString());
   if (audioOptions.newAudioFile) {
     const fileName = (audioOptions.newAudioFile as File).name || 'recording.webm';

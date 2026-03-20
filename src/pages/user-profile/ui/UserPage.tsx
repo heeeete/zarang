@@ -1,27 +1,12 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import Image from 'next/image';
-import { PostCard } from '@/src/entities/post/ui/PostCard';
+import { PostGrid } from '@/src/widgets/explore-feed/ui/PostGrid';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon, ChevronLeft } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import Link from 'next/link';
-
-interface RawUserPost {
-  id: string
-  title: string
-  thumbnail_url: string | null
-  created_at: string
-  author: {
-    username: string
-  } | null
-  categories: {
-    label: string
-  } | null
-  post_likes: { count: number }[]
-  comments: { count: number }[]
-}
-
+import { fetchPostsData } from '@/src/entities/post/api/post-api';
 
 interface UserPageProps {
   params: Promise<{
@@ -44,49 +29,25 @@ export const UserPage = async ({ params }: UserPageProps) => {
   } = await supabase.auth.getUser();
 
   // 만약 조회하려는 ID가 본인이라면 마이페이지로 리다이랙트하거나 같은 UI를 보여줍니다.
-  // 여기서는 일관성을 위해 마이페이지(/me)로 보냅니다.
   if (currentUser?.id === id) {
     redirect('/me');
   }
 
-  // 대상 사용자 프로필 정보를 가져옵니다.
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .single();
+  // 대상 사용자 프로필 정보와 게시글 목록을 병렬로 가져옵니다.
+  const [profileResponse, typedPosts] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', id).single(),
+    fetchPostsData(supabase, {
+      from: 0,
+      to: 99,
+      authorId: id,
+    }),
+  ]);
 
-  if (profileError || !profile) {
+  const profile = profileResponse.data;
+
+  if (profileResponse.error || !profile) {
     notFound();
   }
-
-  // 대상 사용자가 작성한 게시글 목록을 최신순으로 가져옵니다.
-  const { data: posts } = await supabase
-    .from('posts')
-    .select(
-      `
-      id,
-      title,
-      thumbnail_url,
-      created_at,
-      author:profiles!posts_author_id_fkey(username),
-      categories(label),
-      post_likes(count),
-      comments(count)
-    `,
-    )
-    .eq('author_id', id)
-    .order('created_at', { ascending: false });
-
-  const typedPosts =
-    (posts as unknown as RawUserPost[])?.map((post) => ({
-      ...post,
-      author: post.author || { username: '알 수 없음' },
-      _count: {
-        post_likes: post.post_likes?.[0]?.count ?? 0,
-        comments: post.comments?.[0]?.count ?? 0,
-      },
-    })) || [];
 
   return (
     <div className="flex min-h-full flex-col bg-white pb-10">
@@ -140,16 +101,8 @@ export const UserPage = async ({ params }: UserPageProps) => {
             <p className="text-sm font-medium text-muted-foreground">아직 올린 자랑이 없어요.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8">
-            {typedPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={{
-                  ...post,
-                  author: post.author || { username: '알 수 없음' },
-                }}
-              />
-            ))}
+          <div className="px-2">
+            <PostGrid posts={typedPosts} loading={false} />
           </div>
         )}
       </div>

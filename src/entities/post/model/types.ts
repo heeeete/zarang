@@ -1,0 +1,44 @@
+/**
+ * 게시글(Post)의 기본 인터페이스입니다.
+ * DB 뷰(explore_posts_with_author) 및 JOIN 결과를 기반으로 합니다.
+ */
+export interface Post {
+  id: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  audio_url?: string | null;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+  author: {
+    id?: string;
+    username: string;
+    avatar_url?: string | null;
+  };
+  categories?: {
+    id?: string;
+    slug?: string;
+    label: string;
+  } | null;
+  _count?: {
+    post_likes: number;
+    comments: number;
+  };
+}
+
+/**
+ * Supabase로부터 받는 원시 데이터 형태를 정의합니다.
+ */
+export interface RawPostResponse {
+  id: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  audio_url: string | null;
+  author_username?: string | null;
+  author?: { username: string; avatar_url?: string | null } | null;
+  images: { width: number | null; height: number | null }[];
+  post_likes: { count: number }[];
+  comments: { count: number }[];
+  created_at: string;
+  categories?: { label: string } | null;
+}
