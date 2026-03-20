@@ -13,6 +13,8 @@ import { PostActionMenu } from '@/src/features/post-management/ui/PostActionMenu
 import { PostImageGallery } from '@/src/entities/post/ui/PostImageGallery';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
 
+import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
+
 interface PostDetailsPageProps {
   params: Promise<{
     id: string;
@@ -128,9 +130,13 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
               </span>
             </div>
           </Link>
-          <Badge variant="secondary" className="px-2.5 py-0.5 font-medium">
-            {categoryLabel}
-          </Badge>
+          {user?.id !== post.author_id ? (
+            <ToggleFollowButton targetUserId={post.author_id} currentUserId={user?.id} />
+          ) : (
+            <Badge variant="secondary" className="px-2.5 py-0.5 font-medium italic opacity-50">
+              내 게시물
+            </Badge>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">

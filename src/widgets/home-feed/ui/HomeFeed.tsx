@@ -15,7 +15,9 @@ interface HomeFeedProps {
  */
 export const HomeFeed = ({ initialPosts }: HomeFeedProps) => {
   const { posts, loading, hasMore, fetchNextPage } = useHomePosts(initialPosts);
-  const observerRef = useIntersectionObserver(fetchNextPage);
+  const observerRef = useIntersectionObserver(fetchNextPage, {
+    rootMargin: '200px',
+  });
 
   return (
     <div className="flex flex-col gap-4 px-2 py-4">
