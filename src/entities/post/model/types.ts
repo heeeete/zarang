@@ -4,6 +4,7 @@
  */
 export interface Post {
   id: string;
+  author_id: string;
   description: string | null;
   thumbnail_url: string | null;
   audio_url?: string | null;
@@ -27,10 +28,34 @@ export interface Post {
 }
 
 /**
+ * 게시글 상세 정보 인터페이스입니다.
+ */
+export interface DetailPost extends Post {
+  images: {
+    id: string;
+    image_url: string;
+    width: number | null;
+    height: number | null;
+  }[];
+  likes: { count: number }[];
+  comments: {
+    id: string;
+    content: string;
+    created_at: string;
+    parent_id: string | null;
+    author: {
+      username: string;
+      avatar_url: string | null;
+    } | null;
+  }[];
+}
+
+/**
  * Supabase로부터 받는 원시 데이터 형태를 정의합니다.
  */
 export interface RawPostResponse {
   id: string;
+  author_id: string;
   description: string | null;
   thumbnail_url: string | null;
   audio_url: string | null;

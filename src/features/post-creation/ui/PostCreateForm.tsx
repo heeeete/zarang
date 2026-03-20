@@ -194,7 +194,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
           <Textarea
             {...register('description')}
             placeholder="취향 아이템에 대해 들려주세요"
-            className="min-h-[180px] resize-none text-sm"
+            className="min-h-[180px] resize-none"
           />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
