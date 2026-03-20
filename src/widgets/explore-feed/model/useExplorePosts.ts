@@ -33,17 +33,17 @@ export const useExplorePosts = (
 
       try {
         let query = supabase
-          .from('posts')
+          .from('explore_posts_with_author')
           .select(`
             id,
             title,
             description,
             thumbnail_url,
             audio_url,
-            author:profiles!posts_author_id_fkey(username),
+            author_username,
             images:post_images(width, height),
-            post_likes(count),
-            comments(count)
+            post_likes:post_likes!post_likes_post_id_fkey(count),
+            comments:comments!comments_post_id_fkey(count)
           `)
           .order('created_at', { ascending: false })
           .order('sort_order', { foreignTable: 'post_images', ascending: true })
@@ -55,7 +55,7 @@ export const useExplorePosts = (
 
         if (keyword.trim()) {
           query = query.or(
-            `title.ilike.%${keyword}%,description.ilike.%${keyword}%`
+            `title.ilike.%${keyword}%,description.ilike.%${keyword}%,author_username.ilike.%${keyword}%`
           );
         }
 
@@ -71,7 +71,7 @@ export const useExplorePosts = (
           audio_url: post.audio_url,
           width: post.images?.[0]?.width || 800,
           height: post.images?.[0]?.height || 800,
-          author: { username: post.author?.username || '알 수 없음' },
+          author: { username: post.author_username || '알 수 없음' },
           _count: {
             post_likes: post.post_likes?.[0]?.count ?? 0,
             comments: post.comments?.[0]?.count ?? 0,
