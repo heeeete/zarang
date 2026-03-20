@@ -17,6 +17,7 @@ export const SocialLoginButtons = () => {
       provider: provider as Provider,
       options: {
         redirectTo,
+        queryParams: provider === 'kakao' ? { scope: 'profile_nickname' } : undefined,
       },
     });
 

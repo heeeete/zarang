@@ -8,6 +8,7 @@ import { Button } from '@/src/shared/ui/button';
 import Link from 'next/link';
 import { fetchPostsData } from '@/src/entities/post/api/post-api';
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
+import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
 
 interface UserPageProps {
   params: Promise<{
@@ -90,18 +91,36 @@ export const UserPage = async ({ params }: UserPageProps) => {
               <span className="text-base font-bold text-neutral-900">{typedPosts.length}</span>
               <span className="text-xs text-neutral-500">자랑거리</span>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">
-                {followersCount.count || 0}
-              </span>
-              <span className="text-xs text-neutral-500">팔로워</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">
-                {followingCount.count || 0}
-              </span>
-              <span className="text-xs text-neutral-500">팔로잉</span>
-            </div>
+
+            {/* 팔로워 리스트 시트 */}
+            <ProfileListSheet
+              userId={id}
+              currentUserId={currentUser?.id}
+              type="followers"
+              trigger={
+                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="text-base font-bold text-neutral-900">
+                    {followersCount.count || 0}
+                  </span>
+                  <span className="text-xs text-neutral-500">팔로워</span>
+                </div>
+              }
+            />
+
+            {/* 팔로잉 리스트 시트 */}
+            <ProfileListSheet
+              userId={id}
+              currentUserId={currentUser?.id}
+              type="following"
+              trigger={
+                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="text-base font-bold text-neutral-900">
+                    {followingCount.count || 0}
+                  </span>
+                  <span className="text-xs text-neutral-500">팔로잉</span>
+                </div>
+              }
+            />
           </div>
         </div>
 

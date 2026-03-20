@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Loader2Icon, ImageIcon, Mic } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
-import { Input } from '@/src/shared/ui/input';
 import { Textarea } from '@/src/shared/ui/textarea';
 import { toast } from 'sonner';
 import {

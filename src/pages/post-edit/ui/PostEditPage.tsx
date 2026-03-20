@@ -1,8 +1,5 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/src/shared/ui/button';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
 import { Category } from '@/src/entities/post/model/schema';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
