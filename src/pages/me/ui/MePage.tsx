@@ -23,14 +23,22 @@ export const MePage = async () => {
     redirect('/login');
   }
 
-  // 프로필 정보와 게시물 목록을 병렬로 조회합니다.
-  const [profileResponse, typedPosts] = await Promise.all([
+  // 프로필 정보와 게시물 목록, 팔로워/팔로잉 수를 병렬로 조회합니다.
+  const [profileResponse, typedPosts, followersCount, followingCount] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     fetchPostsData(supabase, {
       from: 0,
       to: 99, // 마이페이지는 일단 최대 100개까지 조회
       authorId: user.id,
     }),
+    supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', user.id),
+    supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', user.id),
   ]);
 
   const profile = profileResponse.data;
@@ -70,11 +78,15 @@ export const MePage = async () => {
               <span className="text-xs text-neutral-500">자랑거리</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">0</span>
+              <span className="text-base font-bold text-neutral-900">
+                {followersCount.count || 0}
+              </span>
               <span className="text-xs text-neutral-500">팔로워</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">0</span>
+              <span className="text-base font-bold text-neutral-900">
+                {followingCount.count || 0}
+              </span>
               <span className="text-xs text-neutral-500">팔로잉</span>
             </div>
           </div>

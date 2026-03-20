@@ -33,7 +33,9 @@ export const ExploreFeed = ({ categories, initialPosts }: ExploreFeedProps) => {
     debouncedKeyword,
   );
 
-  const observerRef = useIntersectionObserver(fetchNextPage);
+  const observerRef = useIntersectionObserver(fetchNextPage, {
+    rootMargin: '200px',
+  });
 
   return (
     <div className="flex min-h-full flex-col">

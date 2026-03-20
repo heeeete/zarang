@@ -7,40 +7,45 @@ import { User as UserIcon, ChevronLeft } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import Link from 'next/link';
 import { fetchPostsData } from '@/src/entities/post/api/post-api';
+import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
 
 interface UserPageProps {
   params: Promise<{
-    id: string
-  }>
+    id: string;
+  }>;
 }
 
-
 /**
- * 일반 사용자 프로필 페이지 컴포넌트입니다 (서버 컴포넌트).
- * 특정 사용자의 정보와 작성한 게시글 목록을 표시합니다.
+ * 타인 프로필 페이지 컴포넌트입니다 (서버 컴포넌트).
  */
 export const UserPage = async ({ params }: UserPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
 
-  // 현재 로그인한 사용자 정보를 가져옵니다 (본인 확인용).
   const {
     data: { user: currentUser },
   } = await supabase.auth.getUser();
 
-  // 만약 조회하려는 ID가 본인이라면 마이페이지로 리다이랙트하거나 같은 UI를 보여줍니다.
   if (currentUser?.id === id) {
     redirect('/me');
   }
 
-  // 대상 사용자 프로필 정보와 게시글 목록을 병렬로 가져옵니다.
-  const [profileResponse, typedPosts] = await Promise.all([
+  // 프로필 정보와 게시글 목록, 팔로워/팔로잉 수를 병렬로 조회합니다.
+  const [profileResponse, typedPosts, followersCount, followingCount] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', id).single(),
     fetchPostsData(supabase, {
       from: 0,
       to: 99,
       authorId: id,
     }),
+    supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', id),
+    supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', id),
   ]);
 
   const profile = profileResponse.data;
@@ -50,59 +55,77 @@ export const UserPage = async ({ params }: UserPageProps) => {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-white pb-10">
-      {/* 상단 헤더: 뒤로가기 */}
-      <header className="sticky top-0 z-50 flex h-14 items-center border-b bg-white/90 px-4 backdrop-blur-md">
-        <Button
-          variant="ghost"
-          size="icon"
-          render={<Link href="/" />}
-          className="-ml-2 hover:bg-transparent"
-          nativeButton={false}
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <span className="ml-2 text-sm font-semibold">{profile.username}님의 자랑</span>
+    <div className="flex min-h-full flex-col bg-white">
+      {/* 상단 헤더: 뒤로가기 + 유저네임 */}
+      <header className="sticky top-0 z-50 flex h-12 items-center border-b bg-white px-4">
+        <Link href="/" className="mr-2 outline-none">
+          <ChevronLeft className="size-6 text-neutral-900" />
+        </Link>
+        <h2 className="text-base font-bold">{profile.username}</h2>
       </header>
 
-      {/* 프로필 섹션 */}
-      <div className="flex flex-col items-center gap-5 border-b bg-neutral-50/50 p-10">
-        <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-muted shadow-md">
-          {profile.avatar_url ? (
-            <Image
-              src={getOptimizedImageUrl(profile.avatar_url, 192) || ''}
-              alt={profile.username}
-              fill
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
-              <UserIcon className="size-12" />
+      {/* 프로필 정보 섹션 (인스타그램 스타일) */}
+      <div className="flex flex-col gap-6 px-4 py-6">
+        <div className="flex items-center gap-8">
+          {/* 좌측: 아바타 */}
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border bg-muted shadow-sm">
+            {profile.avatar_url ? (
+              <Image
+                src={getOptimizedImageUrl(profile.avatar_url, 160) || ''}
+                alt={profile.username || 'profile'}
+                fill
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-neutral-50 text-neutral-300">
+                <UserIcon className="size-10" />
+              </div>
+            )}
+          </div>
+
+          {/* 우측: 통계 정보 */}
+          <div className="flex flex-1 items-center justify-around">
+            <div className="flex flex-col items-center">
+              <span className="text-base font-bold text-neutral-900">{typedPosts.length}</span>
+              <span className="text-xs text-neutral-500">자랑거리</span>
             </div>
-          )}
+            <div className="flex flex-col items-center">
+              <span className="text-base font-bold text-neutral-900">
+                {followersCount.count || 0}
+              </span>
+              <span className="text-xs text-neutral-500">팔로워</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-base font-bold text-neutral-900">
+                {followingCount.count || 0}
+              </span>
+              <span className="text-xs text-neutral-500">팔로잉</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col items-center gap-1.5">
-          <h1 className="text-2xl font-extrabold tracking-tight">{profile.username}</h1>
-          {/* 본인이 아니므로 이메일은 노출하지 않습니다. */}
+
+        {/* 하단: 액션 버튼 (팔로우) */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <ToggleFollowButton targetUserId={id} currentUserId={currentUser?.id} />
+          </div>
+          <Button variant="outline" size="sm" className="flex-1 h-7 text-xs font-bold border-neutral-200">
+            메시지
+          </Button>
         </div>
       </div>
 
-      {/* 작성한 자랑거리 목록 섹션 */}
-      <div className="flex flex-col gap-5 p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">
-            자랑거리 <span className="ml-1 text-primary">{typedPosts.length}</span>
-          </h2>
-        </div>
+      {/* 구분선 */}
+      <div className="mx-4 h-[1px] bg-neutral-100" />
 
-        {typedPosts.length === 0 ? (
+      {/* 게시물 메이슨리 피드 */}
+      <div className="flex-1 px-2 py-4">
+        <PostGrid posts={typedPosts} loading={false} />
+
+        {typedPosts.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-24 text-center">
-            <p className="text-sm font-medium text-muted-foreground">아직 올린 자랑이 없어요.</p>
-          </div>
-        ) : (
-          <div className="px-2">
-            <PostGrid posts={typedPosts} loading={false} />
+            <p className="text-sm font-medium text-neutral-400 italic">아직 자랑거리가 없어요.</p>
           </div>
         )}
       </div>
