@@ -90,8 +90,6 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
     initialIsLiked = !!likeData;
   }
 
-  const categoryLabel = post.categories?.label || '기타';
-
   return (
     <div className="flex min-h-full flex-col bg-white pb-20">
       {/* 상단 헤더: 뒤로가기 버튼만 표시 */}

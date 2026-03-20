@@ -1,12 +1,13 @@
 import { Post, RawPostResponse } from '../model/types';
 import { PostFormInput } from '../model/schema';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * 게시글 목록을 조회하는 통합 API입니다.
- * 서버 컴포넌트와 클라이언트 컴포넌트 모두에서 재사용 가능합니다.
+ * 서버와 클라이언트 모두에서 사용하므로 React.cache는 호출부(서버 컴포넌트)에서 필요 시 적용합니다.
  */
 export const fetchPostsData = async (
-  supabase: any,
+  supabase: SupabaseClient,
   options: {
     from: number;
     to: number;
@@ -65,7 +66,9 @@ export const fetchPostsData = async (
     width: post.images?.[0]?.width || 800,
     height: post.images?.[0]?.height || 800,
     author: {
-      username: useView ? post.author_username || '알 수 없음' : post.author?.username || '알 수 없음',
+      username: useView
+        ? post.author_username || '알 수 없음'
+        : post.author?.username || '알 수 없음',
     },
     _count: {
       post_likes: post.post_likes?.[0]?.count ?? 0,
@@ -85,7 +88,7 @@ export const createPost = async (
   const formData = new FormData();
   formData.append('description', data.description || '');
   formData.append('category_id', data.category_id);
-  
+
   if (audioFile) {
     const fileName = (audioFile as File).name || 'recording.webm';
     formData.append('audio', audioFile, fileName);
@@ -122,7 +125,7 @@ export const updatePost = async (
   audioOptions: {
     deleteExistingAudio: boolean;
     newAudioFile: Blob | File | null;
-  }
+  },
 ) => {
   const formData = new FormData();
   formData.append('description', data.description || '');

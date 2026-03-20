@@ -6,8 +6,8 @@ import { ProfileEditButton } from '@/src/features/profile-management/ui/ProfileE
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon, Settings } from 'lucide-react';
 import { PostGrid } from '@/src/widgets/explore-feed/ui/PostGrid';
-import { Post } from '@/src/entities/post/model/types';
 import { fetchPostsData } from '@/src/entities/post/api/post-api';
+import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
 
 /**
  * 마이 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -35,10 +35,7 @@ export const MePage = async () => {
       .from('follows')
       .select('*', { count: 'exact', head: true })
       .eq('following_id', user.id),
-    supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('follower_id', user.id),
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
   ]);
 
   const profile = profileResponse.data;
@@ -77,18 +74,36 @@ export const MePage = async () => {
               <span className="text-base font-bold text-neutral-900">{typedPosts.length}</span>
               <span className="text-xs text-neutral-500">자랑거리</span>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">
-                {followersCount.count || 0}
-              </span>
-              <span className="text-xs text-neutral-500">팔로워</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-base font-bold text-neutral-900">
-                {followingCount.count || 0}
-              </span>
-              <span className="text-xs text-neutral-500">팔로잉</span>
-            </div>
+            
+            {/* 팔로워 리스트 시트 */}
+            <ProfileListSheet
+              userId={user.id}
+              currentUserId={user.id}
+              type="followers"
+              trigger={
+                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="text-base font-bold text-neutral-900">
+                    {followersCount.count || 0}
+                  </span>
+                  <span className="text-xs text-neutral-500">팔로워</span>
+                </div>
+              }
+            />
+
+            {/* 팔로잉 리스트 시트 */}
+            <ProfileListSheet
+              userId={user.id}
+              currentUserId={user.id}
+              type="following"
+              trigger={
+                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="text-base font-bold text-neutral-900">
+                    {followingCount.count || 0}
+                  </span>
+                  <span className="text-xs text-neutral-500">팔로잉</span>
+                </div>
+              }
+            />
           </div>
         </div>
 
@@ -106,7 +121,7 @@ export const MePage = async () => {
 
       {/* 게시물 메이슨리 피드 */}
       <div className="flex-1 px-2 py-4">
-        <PostGrid posts={typedPosts} loading={false} />
+        <PostGrid posts={typedPosts} loading={true} />
 
         {typedPosts.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-24 text-center">
