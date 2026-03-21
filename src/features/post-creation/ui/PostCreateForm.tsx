@@ -93,7 +93,10 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
       const { id } = await createPost(data, imageFiles, audioBlob);
 
       toast.success('자랑거리를 성공적으로 등록했어요!');
-      router.push(`/posts/${id}`);
+      router.replace(`/posts/${id}`);
+      
+      // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
+      await new Promise(() => {});
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '게시글을 작성하지 못했어요.');
     }
