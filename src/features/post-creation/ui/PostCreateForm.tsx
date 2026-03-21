@@ -4,17 +4,11 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ImageIcon, Loader2Icon } from 'lucide-react';
+import { ImageIcon, Loader2Icon, ChevronDown } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import { Textarea } from '@/src/shared/ui/textarea';
 import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/shared/ui/select';
+import { CategoryDrawer } from '@/src/entities/post/ui/CategoryDrawer';
 import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
 
 // Entity Layer Imports
@@ -50,6 +44,7 @@ interface PostCreateFormProps {
 
 export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const router = useRouter();
 
   const {
@@ -109,7 +104,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
       <FieldGroup>
         {/* Image Upload Area */}
         <Field>
-          <FieldLabel>사진 ({imageItems.length}/10)</FieldLabel>
+          <FieldLabel className="sr-only">사진 ({imageItems.length}/10)</FieldLabel>
           <FieldContent>
             <DndContext
               sensors={sensors}
@@ -135,7 +130,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
                   <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100">
                     <ImageIcon className="size-8 text-muted-foreground" />
                     <span className="mt-1 text-[10px] font-medium text-muted-foreground">
-                      사진 추가
+                      사진 추가 ({imageItems.length}/10)
                     </span>
                     <input
                       type="file"
@@ -154,25 +149,32 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
 
         {/* Category */}
         <Field>
-          <FieldLabel>카테고리</FieldLabel>
+          <FieldLabel className="sr-only">카테고리</FieldLabel>
           <Controller
             name="category_id"
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="카테고리를 선택해주세요">
-                    {categories.find((cat) => cat.id === field.value)?.label}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CategoryDrawer
+                categories={categories}
+                selected={field.value}
+                onSelect={(id) => field.onChange(id)}
+                open={isCategoryOpen}
+                onOpenChange={setIsCategoryOpen}
+                showAllOption={false}
+              >
+                <Button
+                  variant="outline"
+                  className="h-12 w-full justify-between px-4 text-base font-medium text-neutral-700"
+                  type="button"
+                >
+                  {field.value ? (
+                    categories.find((cat) => cat.id === field.value)?.label
+                  ) : (
+                    <span className="text-muted-foreground">카테고리를 선택해주세요</span>
+                  )}
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </CategoryDrawer>
             )}
           />
           {errors.category_id && <FieldError>{errors.category_id.message}</FieldError>}
@@ -181,7 +183,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
         {/* Audio (ASMR) */}
         {isKeyboardCategory && (
           <Field>
-            <FieldLabel>타건음 (ASMR)</FieldLabel>
+            <FieldLabel className="sr-only">타건음 (ASMR)</FieldLabel>
             <FieldContent>
               <VoiceRecorder onRecordingComplete={setAudioBlob} />
             </FieldContent>
@@ -190,11 +192,11 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
 
         {/* Description */}
         <Field>
-          <FieldLabel>자랑거리 설명</FieldLabel>
+          <FieldLabel className="sr-only">자랑거리 설명</FieldLabel>
           <Textarea
             {...register('description')}
             placeholder="취향 아이템에 대해 들려주세요"
-            className="min-h-[180px] resize-none"
+            className="min-h-[180px] resize-none text-base"
           />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>

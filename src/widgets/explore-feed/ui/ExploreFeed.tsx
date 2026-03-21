@@ -7,7 +7,7 @@ import { useExploreFilter } from '../model/useExploreFilter';
 import { useExplorePosts } from '../model/useExplorePosts';
 import { Post } from '@/src/entities/post/model/types';
 import { ExploreSearchBar } from './ExploreSearchBar';
-import { CategoryDrawer } from './CategoryDrawer';
+import { CategoryDrawer } from '@/src/entities/post/ui/CategoryDrawer';
 import { PostGrid } from './PostGrid';
 import { InfiniteScrollTrigger } from './InfiniteScrollTrigger';
 
