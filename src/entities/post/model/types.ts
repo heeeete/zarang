@@ -41,6 +41,7 @@ export interface DetailPost extends Post {
   comments: {
     id: string;
     content: string;
+    author_id: string;
     created_at: string;
     parent_id: string | null;
     author: {
