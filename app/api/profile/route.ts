@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { createAdminClient } from '@/src/shared/lib/supabase/admin';
 import { v4 as uuidv4 } from 'uuid';
+import sharp from 'sharp';
 
 /**
  * 프로필 정보 수정 API
@@ -29,6 +30,11 @@ export async function PATCH(request: NextRequest) {
 
     // 1. 프로필 이미지 업로드 처리
     if (avatarFile) {
+      // GIF 파일 업로드 차단
+      if (avatarFile.type === 'image/gif' || avatarFile.name.toLowerCase().endsWith('.gif')) {
+        return NextResponse.json({ error: 'GIF 파일은 업로드할 수 없습니다.' }, { status: 400 });
+      }
+
       // 기존 프로필 이미지 정보 가져오기 (삭제를 위해)
       const { data: oldProfile } = await adminSupabase
         .from('profiles')
@@ -36,15 +42,17 @@ export async function PATCH(request: NextRequest) {
         .eq('id', user.id)
         .single();
 
-      // 새 이미지 업로드
-      const fileExt = avatarFile.name.split('.').pop();
-      const fileName = `${user.id}_${uuidv4()}.${fileExt}`;
+      // 새 이미지 업로드 및 WebP 변환
+      const rawBuffer = Buffer.from(await avatarFile.arrayBuffer());
+      const processedBuffer = await sharp(rawBuffer).rotate().webp({ quality: 80 }).toBuffer();
+      
+      const fileName = `${user.id}_${uuidv4()}.webp`;
       const storagePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await adminSupabase.storage
         .from('post-images') // 아바타 전용 버킷이 없다면 공용 사용
-        .upload(storagePath, avatarFile, {
-          contentType: avatarFile.type,
+        .upload(storagePath, processedBuffer, {
+          contentType: 'image/webp',
           upsert: true,
         });
 
