@@ -67,12 +67,11 @@ export const BottomNav = () => {
               <Link
                 href={item.href}
                 onClick={item.onClick}
-                className={cn(
-                  'flex flex-col items-center gap-1 p-4 transition-colors',
-                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-                )}
+                className={cn('flex flex-col items-center gap-1 p-4 transition-colors')}
               >
-                <Icon className="h-6 w-6" />
+                <Icon
+                  className={cn('h-6 w-6', isActive ? 'text-primary' : 'text-muted-foreground')}
+                />
                 <span className="sr-only text-[10px] font-medium">{item.label}</span>
               </Link>
             </li>

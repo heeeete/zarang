@@ -32,9 +32,9 @@ export const PostGrid = ({ posts, loading }: PostGridProps) => {
   }
 
   return (
-    <div className="w-full">
+    <div className="">
       <ResponsiveMasonry columnsCountBreakPoints={{ 300: 2, 600: 2 }}>
-        <Masonry gutter="10px">
+        <Masonry>
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}

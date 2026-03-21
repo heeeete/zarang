@@ -128,7 +128,7 @@ export const MePage = async () => {
       <div className="mx-4 h-[1px] bg-neutral-100" />
 
       {/* 게시물 메이슨리 피드 */}
-      <div className="flex-1 px-2 py-4">
+      <div className="flex-1 py-2">
         <PostGrid posts={typedPosts} loading={true} />
 
         {typedPosts.length === 0 && (

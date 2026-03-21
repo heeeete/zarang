@@ -29,7 +29,7 @@ export const fetchPostsData = async (
       description,
       thumbnail_url,
       audio_url,
-      ${useView ? 'author_username,' : 'author:profiles!posts_author_id_fkey(username),'}
+      ${useView ? 'author_username, author_avatar_url,' : 'author:profiles!posts_author_id_fkey(username, avatar_url),'}
       images:post_images(width, height),
       post_likes:post_likes!post_likes_post_id_fkey(count),
       comments:comments!comments_post_id_fkey(count),
@@ -72,6 +72,9 @@ export const fetchPostsData = async (
       username: useView
         ? post.author_username || '알 수 없음'
         : post.author?.username || '알 수 없음',
+      avatar_url: useView
+        ? post.author_avatar_url
+        : post.author?.avatar_url,
     },
     _count: {
       post_likes: post.post_likes?.[0]?.count ?? 0,
@@ -114,6 +117,7 @@ export const fetchHomePosts = async (
     height: post.height,
     author: {
       username: post.author_username || '알 수 없음',
+      avatar_url: post.author_avatar_url,
     },
     _count: {
       post_likes: Number(post.likes_count),

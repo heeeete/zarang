@@ -61,6 +61,7 @@ export interface RawPostResponse {
   thumbnail_url: string | null;
   audio_url: string | null;
   author_username?: string | null;
+  author_avatar_url?: string | null;
   author?: { username: string; avatar_url?: string | null } | null;
   images: { width: number | null; height: number | null }[];
   post_likes: { count: number }[];
@@ -81,6 +82,7 @@ export interface RawHomePostResponse {
   category_id: string;
   created_at: string;
   author_username: string | null;
+  author_avatar_url: string | null;
   likes_count: number;
   comments_count: number;
   score: number;
