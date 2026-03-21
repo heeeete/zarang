@@ -4,6 +4,7 @@ import '@/src/app/styles/globals.css'
 import { Header } from '@/src/shared/ui/Header';
 import { BottomNav } from '@/src/shared/ui/BottomNav';
 import { Toaster } from '@/src/shared/ui/sonner';
+import { NotificationListener } from '@/src/features/notifications/ui/NotificationListener';
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
 					<BottomNav />
 				</div>
 				<Toaster position="top-center" />
+				<NotificationListener />
 			</body>
 		</html>
 	);

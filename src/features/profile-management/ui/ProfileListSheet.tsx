@@ -1,13 +1,14 @@
 'use client';
 
 import { ReactElement, useEffect, useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/src/shared/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/src/shared/ui/sheet';
 import { getFollowers, getFollowing, ProfileListItem } from '../api/profile-api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2Icon, UserIcon } from 'lucide-react';
 import { ToggleFollowButton } from './ToggleFollowButton';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
+import AppSheetHeader from '@/src/shared/ui/AppSheetHeader';
 
 interface ProfileListSheetProps {
   userId: string;
@@ -51,10 +52,8 @@ export const ProfileListSheet = ({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger render={trigger as ReactElement} nativeButton={false} />
-      <SheetContent side="right" className="p-0">
-        <SheetHeader className="border-b p-4">
-          <SheetTitle className="text-left text-lg font-bold">{title}</SheetTitle>
-        </SheetHeader>
+      <SheetContent showCloseButton={false} side="right" className="p-0">
+        <AppSheetHeader title={title} />
         <div className="flex h-full flex-col overflow-y-auto pb-20">
           {isLoading ? (
             <div className="flex items-center justify-center p-8 text-neutral-500">
