@@ -132,22 +132,33 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // 4. Process and Upload New Images
     for (let i = 0; i < newImages.length; i++) {
       const image = newImages[i];
+
+      // GIF 파일 업로드 차단
+      if (image.type === 'image/gif' || image.name.toLowerCase().endsWith('.gif')) {
+        return NextResponse.json({ error: 'GIF 파일은 업로드할 수 없습니다.' }, { status: 400 });
+      }
+
       const rawBuffer = Buffer.from(await image.arrayBuffer());
-      const processedImage = sharp(rawBuffer).rotate();
+      
+      /**
+       * 중요: sharp().rotate()는 EXIF 방향 정보를 읽어 이미지를 실제로 회전시킵니다.
+       * .webp()를 통해 이미지를 WebP 형식으로 변환합니다.
+       */
+      const processedImage = sharp(rawBuffer).rotate().webp({ quality: 80 });
       const processedBuffer = await processedImage.toBuffer();
       const metadata = await sharp(processedBuffer).metadata();
 
       const width = metadata.width || null;
       const height = metadata.height || null;
 
-      const fileExt = image.name.split('.').pop() || 'jpg';
-      const fileName = `${Date.now()}_${uuidv4()}.${fileExt}`;
+      // 확장자를 webp로 고정합니다.
+      const fileName = `${Date.now()}_${uuidv4()}.webp`;
       const storagePath = `post-images/${user.id}/${id}/${fileName}`;
 
       const { error: storageError } = await adminSupabase.storage
         .from('post-images')
         .upload(storagePath, processedBuffer, {
-          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+          contentType: 'image/webp',
           upsert: false,
         });
 
