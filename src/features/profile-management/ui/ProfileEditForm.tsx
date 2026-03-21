@@ -93,9 +93,11 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
       toast.success('프로필을 수정했어요!');
       router.push('/me');
       router.refresh();
+
+      // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
+      await new Promise(() => {});
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '문제가 생겼어요. 다시 시도해 주세요.');
-    } finally {
       setIsSubmitting(false);
     }
   };

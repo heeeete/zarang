@@ -131,8 +131,11 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
       );
 
       toast.success('수정 내용을 저장했어요.');
-      router.push(`/posts/${post.id}`);
+      router.replace(`/posts/${post.id}`);
       router.refresh();
+
+      // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
+      await new Promise(() => {});
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '수정 내용을 저장하지 못했어요.');
     }
