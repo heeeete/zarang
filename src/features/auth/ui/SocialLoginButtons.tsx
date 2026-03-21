@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Button } from '@/src/shared/ui/button';
 import { Provider } from '@supabase/supabase-js';
+import { GoogleIcon, KakaoIcon } from '@/src/shared/ui/SocialIcons';
 
 export const SocialLoginButtons = () => {
   const supabase = createClient();
@@ -30,21 +31,21 @@ export const SocialLoginButtons = () => {
       <Button
         onClick={() => handleLogin('google')}
         variant="outline"
-        className="h-12 w-full border-neutral-300 text-base font-semibold"
+        className="relative h-12 w-full border-neutral-300 text-base font-semibold"
       >
+        <div className="absolute left-4 flex items-center justify-center">
+          <GoogleIcon className="size-5" />
+        </div>
         Google로 시작하기
       </Button>
       <Button
         onClick={() => handleLogin('kakao')}
-        className="h-12 w-full border-none bg-[#FEE500] text-base font-semibold text-[#191919] hover:bg-[#FEE500]/90"
+        className="relative h-12 w-full border-none bg-[#FEE500] text-base font-semibold text-[#191919] hover:bg-[#FEE500]/90"
       >
+        <div className="absolute left-4 flex items-center justify-center">
+          <KakaoIcon className="size-5" />
+        </div>
         카카오로 시작하기
-      </Button>
-      <Button
-        onClick={() => handleLogin('naver')}
-        className="h-12 w-full border-none bg-[#03C75A] text-base font-semibold text-white hover:bg-[#03C75A]/90"
-      >
-        네이버로 시작하기
       </Button>
     </div>
   );

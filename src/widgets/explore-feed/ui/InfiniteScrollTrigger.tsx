@@ -14,7 +14,7 @@ export const InfiniteScrollTrigger = forwardRef<HTMLDivElement, InfiniteScrollTr
         {loading && <PostSkeleton />}
         {!hasMore && postsCount > 0 && (
           <p className="py-10 text-center text-xs text-muted-foreground italic">
-            축하해요! 모든 게시물을 다 봤어요! 🎉
+            더 많이 자랑해주세요
           </p>
         )}
       </div>
