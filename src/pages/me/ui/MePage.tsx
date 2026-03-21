@@ -74,14 +74,14 @@ export const MePage = async () => {
               <span className="text-base font-bold text-neutral-900">{typedPosts.length}</span>
               <span className="text-xs text-neutral-500">자랑거리</span>
             </div>
-            
+
             {/* 팔로워 리스트 시트 */}
             <ProfileListSheet
               userId={user.id}
               currentUserId={user.id}
               type="followers"
               trigger={
-                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
                   <span className="text-base font-bold text-neutral-900">
                     {followersCount.count || 0}
                   </span>
@@ -96,7 +96,7 @@ export const MePage = async () => {
               currentUserId={user.id}
               type="following"
               trigger={
-                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
                   <span className="text-base font-bold text-neutral-900">
                     {followingCount.count || 0}
                   </span>
@@ -110,7 +110,7 @@ export const MePage = async () => {
         {/* 소개글 영역 (있을 때만 표시) */}
         {profile?.bio && (
           <div className="px-1">
-            <p className="text-sm leading-relaxed text-neutral-800 break-all whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed break-all whitespace-pre-wrap text-neutral-800">
               {profile.bio}
             </p>
           </div>

@@ -1,16 +1,10 @@
 'use client';
 
-import { ChevronRight, Menu } from 'lucide-react';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/src/shared/ui/sheet';
+import { Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/src/shared/ui/sheet';
 import { LogoutButton } from '@/src/features/auth/ui/LogoutButton';
 import { FeedbackSheet } from './FeedbackSheet';
+import AppSheetHeader from '@/src/shared/ui/AppSheetHeader';
 
 const MENU_SECTIONS = [
   {
@@ -43,15 +37,7 @@ export const MeMenuSheet = () => {
         side="right"
         className="flex flex-col gap-0 border-none p-0"
       >
-        <SheetHeader className="p-4">
-          <SheetTitle className="flex items-center justify-between gap-2">
-            <SheetClose className="outline-none">
-              <ChevronRight className="size-6 rotate-180" />
-            </SheetClose>
-            <p className="text-lg font-bold text-neutral-900">설정</p>
-            <div className="size-6"></div>
-          </SheetTitle>
-        </SheetHeader>
+        <AppSheetHeader title="설정" />
 
         <div className="flex flex-1 flex-col overflow-y-auto">
           {MENU_SECTIONS.map((section) => (

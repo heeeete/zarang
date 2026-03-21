@@ -7,25 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
   public: {
     Tables: {
       categories: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           label: string
           slug: string
           sort_order: number | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           label: string
           slug: string
           sort_order?: number | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           label?: string
           slug?: string
@@ -39,34 +44,55 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          parent_id: string | null
           post_id: string
           updated_at: string
-          parent_id: string | null
         }
         Insert: {
           author_id: string
           content: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id: string
           updated_at?: string
-          parent_id?: string | null
         }
         Update: {
           author_id?: string
           content?: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id?: string
           updated_at?: string
-          parent_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "comments_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
             referencedColumns: ["id"]
           },
           {
@@ -76,11 +102,134 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "comments_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string
+          comment_id: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id: string
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -121,6 +270,13 @@ export type Database = {
             foreignKeyName: "post_images_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_images_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
@@ -147,8 +303,22 @@ export type Database = {
             foreignKeyName: "post_likes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
           },
           {
             foreignKeyName: "post_likes_user_id_fkey"
@@ -161,36 +331,46 @@ export type Database = {
       }
       posts: {
         Row: {
+          audio_storage_path: string | null
+          audio_url: string | null
           author_id: string
           category_id: string
           created_at: string
           description: string | null
           id: string
           thumbnail_url: string | null
-          title: string | null
           updated_at: string
         }
         Insert: {
+          audio_storage_path?: string | null
+          audio_url?: string | null
           author_id: string
           category_id: string
           created_at?: string
           description?: string | null
           id?: string
           thumbnail_url?: string | null
-          title?: string | null
           updated_at?: string
         }
         Update: {
+          audio_storage_path?: string | null
+          audio_url?: string | null
           author_id?: string
           category_id?: string
           created_at?: string
           description?: string | null
           id?: string
           thumbnail_url?: string | null
-          title?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "explore_posts_with_author"
+            referencedColumns: ["author_id"]
+          },
           {
             foreignKeyName: "posts_author_id_fkey"
             columns: ["author_id"]
@@ -210,6 +390,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           id: string
           updated_at: string | null
@@ -217,6 +398,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           id: string
           updated_at?: string | null
@@ -224,6 +406,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
           updated_at?: string | null
@@ -233,10 +416,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      explore_posts_with_author: {
+        Row: {
+          audio_url: string | null
+          author_id: string | null
+          author_username: string | null
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          thumbnail_url: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_home_feed: {
+        Args: { p_limit?: number; p_offset?: number; p_user_id?: string }
+        Returns: {
+          audio_url: string
+          author_id: string
+          author_username: string
+          category_id: string
+          comments_count: number
+          created_at: string
+          description: string
+          height: number
+          id: string
+          likes_count: number
+          score: number
+          thumbnail_url: string
+          width: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

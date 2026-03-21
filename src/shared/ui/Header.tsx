@@ -7,6 +7,7 @@ import { createClient } from '@/src/shared/lib/supabase/client';
 import { Button } from '@/src/shared/ui/button';
 import { LogIn } from 'lucide-react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { NotificationBell } from '@/src/features/notifications/ui/NotificationBell';
 
 export const Header = () => {
   const pathname = usePathname();
@@ -50,6 +51,9 @@ export const Header = () => {
               <LogIn className="mr-1 h-4 w-4" />
               로그인
             </Button>
+          )}
+          {!loading && user && (
+            <NotificationBell />
           )}
         </div>
       </div>

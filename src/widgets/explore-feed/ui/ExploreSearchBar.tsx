@@ -13,7 +13,7 @@ export const ExploreSearchBar = ({ value, onChange }: ExploreSearchBarProps) => 
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="제목, 내용, 닉네임으로 검색"
+        placeholder="내용, 닉네임으로 검색"
         className="h-10 w-full rounded-xl bg-neutral-100 pr-10 pl-9 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:outline-none"
       />
       {value && (
