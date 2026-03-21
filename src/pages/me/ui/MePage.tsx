@@ -107,6 +107,15 @@ export const MePage = async () => {
           </div>
         </div>
 
+        {/* 소개글 영역 (있을 때만 표시) */}
+        {profile?.bio && (
+          <div className="px-1">
+            <p className="text-sm leading-relaxed text-neutral-800 break-all whitespace-pre-wrap">
+              {profile.bio}
+            </p>
+          </div>
+        )}
+
         {/* 하단: 액션 버튼 */}
         <div className="flex gap-2">
           <div className="flex-1">
