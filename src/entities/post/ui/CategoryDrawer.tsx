@@ -37,18 +37,14 @@ export const CategoryDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerTrigger asChild>
-        {children || (
-          <button className="flex w-fit items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95">
-            {selectedCategoryLabel}
-            <ChevronDown
-              className={cn(
-                'size-3.5 text-neutral-400 transition-transform duration-200',
-                open && 'rotate-180',
-              )}
-            />
-          </button>
-        )}
+      <DrawerTrigger className="flex w-fit items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95">
+        {selectedCategoryLabel}
+        <ChevronDown
+          className={cn(
+            'size-3.5 text-neutral-400 transition-transform duration-200',
+            open && 'rotate-180',
+          )}
+        />
       </DrawerTrigger>
       <DrawerContent className="mx-auto max-w-[420px]">
         <DrawerHeader className="border-b pb-4">

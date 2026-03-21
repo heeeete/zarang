@@ -51,7 +51,7 @@ export const ProfileListSheet = ({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger render={trigger as ReactElement} nativeButton={false} />
-      <SheetContent side="right" className="w-full max-w-[420px] p-0 sm:max-w-[420px]">
+      <SheetContent side="right" className="p-0">
         <SheetHeader className="border-b p-4">
           <SheetTitle className="text-left text-lg font-bold">{title}</SheetTitle>
         </SheetHeader>
