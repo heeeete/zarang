@@ -67,3 +67,22 @@ export interface RawPostResponse {
   created_at: string;
   categories?: { label: string } | null;
 }
+
+/**
+ * 추천 알고리즘 RPC(get_home_feed)로부터 받는 원시 데이터 형태입니다.
+ */
+export interface RawHomePostResponse {
+  id: string;
+  author_id: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  audio_url: string | null;
+  category_id: string;
+  created_at: string;
+  author_username: string | null;
+  likes_count: number;
+  comments_count: number;
+  score: number;
+  width: number;
+  height: number;
+}

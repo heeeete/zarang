@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Post, RawPostResponse, DetailPost } from '../model/types';
+import { Post, RawPostResponse, DetailPost, RawHomePostResponse } from '../model/types';
 import { PostFormInput } from '../model/schema';
 
 /**
@@ -76,6 +76,48 @@ export const fetchPostsData = async (
     _count: {
       post_likes: post.post_likes?.[0]?.count ?? 0,
       comments: post.comments?.[0]?.count ?? 0,
+    },
+  }));
+};
+
+/**
+ * 추천 알고리즘이 적용된 홈 피드 게시글 목록을 조회합니다.
+ */
+export const fetchHomePosts = async (
+  supabase: SupabaseClient,
+  options: {
+    from: number;
+    to: number;
+    userId?: string | null;
+  },
+): Promise<Post[]> => {
+  const { from, to, userId } = options;
+  const limit = to - from + 1;
+
+  const { data, error } = await supabase.rpc('get_home_feed', {
+    p_user_id: userId,
+    p_limit: limit,
+    p_offset: from,
+  });
+
+  if (error) throw error;
+
+  const rawPosts = (data as unknown as RawHomePostResponse[]) || [];
+  return rawPosts.map((post) => ({
+    id: post.id,
+    author_id: post.author_id,
+    description: post.description,
+    thumbnail_url: post.thumbnail_url,
+    audio_url: post.audio_url,
+    created_at: post.created_at,
+    width: post.width,
+    height: post.height,
+    author: {
+      username: post.author_username || '알 수 없음',
+    },
+    _count: {
+      post_likes: Number(post.likes_count),
+      comments: Number(post.comments_count),
     },
   }));
 };
