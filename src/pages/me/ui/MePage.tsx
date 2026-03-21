@@ -1,13 +1,13 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
-import { LogoutButton } from '@/src/features/auth/ui/LogoutButton';
 import { ProfileEditButton } from '@/src/features/profile-management/ui/ProfileEditButton';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
-import { User as UserIcon, Settings } from 'lucide-react';
+import { User as UserIcon } from 'lucide-react';
 import { PostGrid } from '@/src/widgets/explore-feed/ui/PostGrid';
 import { fetchPostsData } from '@/src/entities/post/api/post-api';
 import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
+import { MeMenuSheet } from '@/src/features/profile-management/ui/(MeMenu)/MeMenuSheet';
 
 /**
  * 마이 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -42,10 +42,10 @@ export const MePage = async () => {
 
   return (
     <div className="flex min-h-full flex-col bg-white">
-      {/* 상단 헤더: 인스타그램 스타일 (유저네임 + 설정 아이콘) */}
+      {/* 상단 헤더: 인스타그램 스타일 (유저네임 + 메뉴 아이콘) */}
       <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b bg-white px-4">
         <h2 className="text-base font-bold">{profile?.username}</h2>
-        <Settings className="size-5 text-neutral-700" />
+        <MeMenuSheet />
       </header>
 
       {/* 프로필 정보 섹션 (인스타그램 스타일) */}
@@ -121,7 +121,6 @@ export const MePage = async () => {
           <div className="flex-1">
             <ProfileEditButton />
           </div>
-          <LogoutButton />
         </div>
       </div>
 
