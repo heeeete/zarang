@@ -17,6 +17,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const formData = await request.formData();
     const username = formData.get('username') as string;
+    const bio = formData.get('bio') as string | null;
     const avatarFile = formData.get('avatar') as File | null;
 
     if (!username) {
@@ -71,8 +72,9 @@ export async function PATCH(request: NextRequest) {
       avatar_url?: string;
     }
 
-    const updateData: ProfileUpdateData = {
+    const updateData: any = {
       username,
+      bio: bio ?? null,
       updated_at: new Date().toISOString(),
     };
     if (avatarUrl) updateData.avatar_url = avatarUrl;

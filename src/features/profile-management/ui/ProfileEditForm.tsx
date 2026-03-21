@@ -9,6 +9,7 @@ import { Camera, Loader2, User } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '@/src/shared/ui/button';
 import { Input } from '@/src/shared/ui/input';
+import { Textarea } from '@/src/shared/ui/textarea';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/src/shared/ui/field';
 import { toast } from 'sonner';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
@@ -19,6 +20,7 @@ const profileSchema = z.object({
     .min(2, '닉네임은 최소 2글자 이상이어야 해요.')
     .max(20, '닉네임은 최대 20글자까지 가능해요.')
     .regex(/^[a-zA-Z0-9가-힣_]+$/, '닉네임은 한글, 영문, 숫자, 언더바(_)만 사용할 수 있어요.'),
+  bio: z.string().max(100, '소개글은 최대 100자까지 가능해요.').nullable(),
 });
 
 type ProfileInput = z.infer<typeof profileSchema>;
@@ -28,6 +30,7 @@ interface ProfileEditFormProps {
     id: string;
     username: string;
     avatar_url: string | null;
+    bio?: string | null;
   };
 }
 
@@ -49,6 +52,7 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       username: profile.username,
+      bio: profile.bio || '',
     },
   });
 
@@ -69,6 +73,9 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
     try {
       const formData = new FormData();
       formData.append('username', data.username);
+      if (data.bio !== null) {
+        formData.append('bio', data.bio || '');
+      }
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
@@ -132,7 +139,7 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
 
       <FieldGroup className="gap-6">
         <Field>
-          <FieldLabel>닉네임</FieldLabel>
+          <FieldLabel className="sr-only">닉네임</FieldLabel>
           <Input
             {...register('username')}
             placeholder="사용하실 닉네임을 입력해 주세요"
@@ -145,6 +152,16 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
               * 2~20자 사이의 한글, 영문, 숫자만 가능해요.
             </p>
           )}
+        </Field>
+
+        <Field>
+          <FieldLabel className="sr-only">소개글</FieldLabel>
+          <Textarea
+            {...register('bio')}
+            placeholder="회원님을 한 줄로 소개해 주세요 (선택)"
+            className="min-h-[100px] resize-none text-sm leading-relaxed"
+          />
+          {errors.bio && <FieldError>{errors.bio.message}</FieldError>}
         </Field>
       </FieldGroup>
 
