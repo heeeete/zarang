@@ -53,7 +53,10 @@ export const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 z-50 h-16 w-full max-w-[420px] -translate-x-1/2 border-t bg-white px-3">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto h-16 w-full max-w-[420px] border-t bg-white px-3"
+      style={{ right: 'var(--removed-body-scroll-bar-size, 0px)' }}
+    >
       <ul className="flex h-full items-center justify-between">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

@@ -98,7 +98,10 @@ export const CommentInput = ({
   const isEditing = !!editingComment;
 
   return (
-    <div className="fixed bottom-16 left-1/2 z-50 flex w-full max-w-[420px] -translate-x-1/2 flex-col gap-2 border-t bg-white p-2 px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <div
+      className="fixed inset-x-0 bottom-16 z-50 mx-auto flex w-full max-w-[420px] flex-col gap-2 border-t bg-white p-2 px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+      style={{ right: 'var(--removed-body-scroll-bar-size, 0px)' }}
+    >
       {/* 상태 표시줄 (답글 또는 수정) */}
       {(replyingTo || isEditing) && (
         <div className="flex items-center justify-between px-2 pt-1">
