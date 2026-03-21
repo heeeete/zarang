@@ -12,10 +12,21 @@ interface CommentInputProps {
     parentId: string;
     username: string;
   } | null;
+  editingComment?: {
+    id: string;
+    content: string;
+  } | null;
   onCancelReply?: () => void;
+  onCancelEdit?: () => void;
 }
 
-export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInputProps) => {
+export const CommentInput = ({
+  postId,
+  replyingTo,
+  editingComment,
+  onCancelReply,
+  onCancelEdit,
+}: CommentInputProps) => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -29,13 +40,27 @@ export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInput
     }
   }, [replyingTo]);
 
+  // 수정 버튼 클릭 시 기존 내용 입력창에 채우기 및 포커스
+  useEffect(() => {
+    if (editingComment) {
+      setContent(editingComment.content);
+      inputRef.current?.focus();
+    }
+  }, [editingComment]);
+
   const handleSubmit = async () => {
     if (!content.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/posts/${postId}/comments`, {
-        method: 'POST',
+      const isEditing = !!editingComment;
+      const url = isEditing
+        ? `/api/comments/${editingComment.id}`
+        : `/api/posts/${postId}/comments`;
+      const method = isEditing ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -49,12 +74,17 @@ export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInput
         if (response.status === 401) {
           toast.error('로그인이 필요한 서비스예요.');
         } else {
-          throw new Error('댓글을 등록하지 못했어요.');
+          throw new Error(isEditing ? '댓글을 수정하지 못했어요.' : '댓글을 등록하지 못했어요.');
         }
       } else {
         setContent('');
-        if (onCancelReply) onCancelReply();
-        toast.success(replyingTo ? '답글을 남겼어요.' : '댓글을 남겼어요.');
+        if (isEditing) {
+          if (onCancelEdit) onCancelEdit();
+          toast.success('댓글을 수정했습니다.');
+        } else {
+          if (onCancelReply) onCancelReply();
+          toast.success(replyingTo ? '답글을 남겼어요.' : '댓글을 남겼어요.');
+        }
         router.refresh();
       }
     } catch (error) {
@@ -65,16 +95,27 @@ export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInput
     }
   };
 
+  const isEditing = !!editingComment;
+
   return (
     <div className="fixed bottom-16 left-1/2 z-50 flex w-full max-w-[420px] -translate-x-1/2 flex-col gap-2 border-t bg-white p-2 px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-      {/* 답글 상태 표시줄 */}
-      {replyingTo && (
+      {/* 상태 표시줄 (답글 또는 수정) */}
+      {(replyingTo || isEditing) && (
         <div className="flex items-center justify-between px-2 pt-1">
           <p className="text-[11px] text-neutral-500">
-            <span className="font-bold text-primary">{replyingTo.username}</span> 님에게 답글 남기는
-            중
+            {isEditing ? (
+              <span className="font-bold text-primary">댓글 수정 중</span>
+            ) : (
+              <>
+                <span className="font-bold text-primary">{replyingTo?.username}</span> 님에게 답글
+                남기는 중
+              </>
+            )}
           </p>
-          <button onClick={onCancelReply} className="text-neutral-400 hover:text-neutral-600">
+          <button
+            onClick={isEditing ? onCancelEdit : onCancelReply}
+            className="text-neutral-400 hover:text-neutral-600"
+          >
             <X className="size-3.5" />
           </button>
         </div>
@@ -83,7 +124,13 @@ export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInput
       <div className="flex items-center gap-2">
         <input
           ref={inputRef}
-          placeholder={replyingTo ? '답글을 입력하세요...' : '댓글을 입력하세요...'}
+          placeholder={
+            isEditing
+              ? '수정할 내용을 입력하세요...'
+              : replyingTo
+                ? '답글을 입력하세요...'
+                : '댓글을 입력하세요...'
+          }
           value={content}
           onChange={(e) => setContent(e.target.value)}
           disabled={isSubmitting}
@@ -102,7 +149,7 @@ export const CommentInput = ({ postId, replyingTo, onCancelReply }: CommentInput
           disabled={isSubmitting || !content.trim()}
           className="font-bold text-primary hover:bg-transparent"
         >
-          게시
+          {isEditing ? '수정' : '게시'}
         </Button>
       </div>
     </div>
