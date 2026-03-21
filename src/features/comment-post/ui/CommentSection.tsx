@@ -11,7 +11,6 @@ import { CommentInput } from './CommentInput';
 
 interface CommentSectionProps {
   post: DetailPost;
-  currentUserId?: string;
 }
 
 /**
@@ -34,7 +33,7 @@ const HighlightMention = ({ content }: { content: string }) => {
   );
 };
 
-export const CommentSection = ({ post, currentUserId }: CommentSectionProps) => {
+export const CommentSection = ({ post }: CommentSectionProps) => {
   // 현재 답글을 달고 있는 부모 댓글의 정보
   const [replyingTo, setReplyingTo] = useState<{
     parentId: string;

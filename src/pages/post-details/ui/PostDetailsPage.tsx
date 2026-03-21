@@ -133,7 +133,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         </div>
 
         {/* 댓글 섹션 (클라이언트 컴포넌트로 분리하여 답글 상태 관리) */}
-        <CommentSection post={post} currentUserId={user?.id} />
+        <CommentSection post={post} />
       </div>
     </div>
   );
