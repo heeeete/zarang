@@ -1,7 +1,7 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import Image from 'next/image';
-import { PostGrid } from '@/src/widgets/explore-feed/ui/PostGrid';
+import { ProfilePostGrid } from '@/src/widgets/profile-post-grid/ui/ProfilePostGrid';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon, ChevronLeft } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
@@ -147,15 +147,9 @@ export const UserPage = async ({ params }: UserPageProps) => {
       {/* 구분선 */}
       <div className="mx-4 h-[1px] bg-neutral-100" />
 
-      {/* 게시물 메이슨리 피드 */}
-      <div className="flex-1 px-2 py-4">
-        <PostGrid posts={typedPosts} loading={false} />
-
-        {typedPosts.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-24 text-center">
-            <p className="text-sm font-medium text-neutral-400 italic">아직 자랑거리가 없어요.</p>
-          </div>
-        )}
+      {/* 게시물 3열 Masonry 피드 */}
+      <div className="flex-1 pb-4">
+        <ProfilePostGrid posts={typedPosts} />
       </div>
     </div>
   );
