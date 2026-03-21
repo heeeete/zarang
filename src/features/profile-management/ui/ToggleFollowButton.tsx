@@ -16,11 +16,11 @@ interface ToggleFollowButtonProps {
 /**
  * 팔로우/언팔로우 토글 버튼 컴포넌트입니다.
  */
-export const ToggleFollowButton = ({ 
-  targetUserId, 
-  currentUserId, 
+export const ToggleFollowButton = ({
+  targetUserId,
+  currentUserId,
   initialIsFollowing = null,
-  initialIsFollowedBy = null
+  initialIsFollowedBy = null,
 }: ToggleFollowButtonProps) => {
   const [isFollowing, setIsFollowing] = useState<boolean | null>(initialIsFollowing);
   const [isFollowedBy, setIsFollowedBy] = useState<boolean | null>(initialIsFollowedBy); // 상대방이 나를 팔로우하는지 여부
@@ -88,7 +88,7 @@ export const ToggleFollowButton = ({
 
         if (error) throw error;
         setIsFollowing(true);
-        toast.success(isFollowedBy ? '맞팔로우를 시작했어요! 🎉' : '팔로우했어요! 🎉');
+        toast.success(isFollowedBy ? '맞팔로우를 시작했어요!' : '팔로우했어요!');
       }
     } catch (err) {
       console.error('팔로우 토글 실패:', err);
@@ -123,7 +123,9 @@ export const ToggleFollowButton = ({
       variant={isFollowing ? 'outline' : 'default'}
       size="sm"
       className={`h-7 px-4 text-xs font-bold transition-all duration-200 ${
-        isFollowing ? 'border-neutral-200 text-neutral-500 hover:bg-neutral-50' : 'bg-primary text-white'
+        isFollowing
+          ? 'border-neutral-200 text-neutral-500 hover:bg-neutral-50'
+          : 'bg-primary text-white'
       }`}
       onClick={handleToggleFollow}
       disabled={isLoading}

@@ -42,7 +42,7 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[420px] items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold tracking-tighter text-primary">
+        <Link href="/" className="text-xl font-bold tracking-tighter">
           ZARANG
         </Link>
         <div className="flex items-center gap-2">
@@ -52,9 +52,7 @@ export const Header = () => {
               로그인
             </Button>
           )}
-          {!loading && user && (
-            <NotificationBell />
-          )}
+          {!loading && user && <NotificationBell />}
         </div>
       </div>
     </header>

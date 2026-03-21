@@ -20,7 +20,7 @@ export const HomeFeed = ({ initialPosts }: HomeFeedProps) => {
   });
 
   return (
-    <div className="flex flex-col gap-4 px-2 py-4">
+    <div className="flex flex-col py-2">
       {/* 게시글 그리드 (Masonry) */}
       <PostGrid posts={posts} loading={loading} />
 
