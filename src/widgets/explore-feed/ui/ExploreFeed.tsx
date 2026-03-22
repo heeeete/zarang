@@ -40,7 +40,7 @@ export const ExploreFeed = ({
   );
 
   const observerRef = useIntersectionObserver(fetchNextPage, {
-    rootMargin: '200px',
+    rootMargin: '50px',
   });
 
   // 탐색 페이지 사용자 가이드 설정
