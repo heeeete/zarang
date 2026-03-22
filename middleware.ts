@@ -1,42 +1,15 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { updateSession } from '@/src/shared/lib/supabase/middleware';
-import { createClient } from '@/src/shared/lib/supabase/server';
 
 export async function middleware(request: NextRequest) {
-  // Update session first
-  const response = await updateSession(request);
-
-  // Protect routes
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith('/write') ||
-    request.nextUrl.pathname.startsWith('/me') ||
-    request.nextUrl.pathname.startsWith('/users');
-
-  console.log(user);
-
-  if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(url);
-  }
-
-  return response;
+  return await updateSession(request);
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * 모든 페이지 요청에서 미들웨어가 실행되도록 하여 세션을 안전하게 유지합니다.
+     * 단, 정적 파일 및 이미지는 제외합니다.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

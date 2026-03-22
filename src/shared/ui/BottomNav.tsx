@@ -2,41 +2,28 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { createClient } from '@/src/shared/lib/supabase/client';
-import { Home, Compass, PlusSquare, User } from 'lucide-react';
+import { Home, Compass, PlusSquare, User, MessageSquare } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { useAuth } from '@/src/app/providers/AuthProvider';
 
+/**
+ * 하단 내비게이션 바 컴포넌트입니다.
+ */
 export const BottomNav = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const supabase = createClient();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
+  // 모든 훅 호출 이후에 렌더링 여부를 결정합니다 (Rules of Hooks 준수).
+  const isChatRoom = pathname?.startsWith('/messages/') && pathname !== '/messages';
+  if (isChatRoom) return null;
 
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
-
-  const handleWriteClick = (e: React.MouseEvent) => {
+  // 로그인되지 않은 상태에서 보안이 필요한 페이지 클릭 시 가로채기
+  const handleProtectedClick = (e: React.MouseEvent, href: string) => {
     if (!user) {
       e.preventDefault();
-      router.push('/login?next=/write');
+      // 가려던 페이지 정보를 담아 로그인 페이지로 이동합니다. ✨
+      router.push(`/login?redirect=${encodeURIComponent(href)}`);
     }
   };
 
@@ -47,9 +34,20 @@ export const BottomNav = () => {
       href: '/write',
       icon: PlusSquare,
       label: '자랑하기',
-      onClick: handleWriteClick,
+      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/write'),
     },
-    { href: '/me', icon: User, label: '마이' },
+    {
+      href: '/messages',
+      icon: MessageSquare,
+      label: '메시지',
+      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/messages'),
+    },
+    {
+      href: '/me',
+      icon: User,
+      label: '마이',
+      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/me'),
+    },
   ];
 
   return (

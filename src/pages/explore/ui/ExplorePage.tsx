@@ -23,11 +23,7 @@ export const ExplorePage = async () => {
   return (
     <div className="flex min-h-full flex-col bg-white">
       <main className="flex-1">
-        <ExploreFeed 
-          categories={categories} 
-          initialPosts={initialPosts} 
-          isAuthenticated={!!user} 
-        />
+        <ExploreFeed categories={categories} initialPosts={initialPosts} isAuthenticated={!!user} />
       </main>
     </div>
   );

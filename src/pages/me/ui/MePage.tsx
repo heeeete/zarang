@@ -60,6 +60,7 @@ export const MePage = async () => {
                 fill
                 className="object-cover"
                 priority
+                sizes="78px"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-neutral-50 text-neutral-300">

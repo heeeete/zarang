@@ -16,11 +16,13 @@ import { ko } from 'date-fns/locale';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import AppSheetHeader from '@/src/shared/ui/AppSheetHeader';
+import { useAuth } from '@/src/app/providers/AuthProvider';
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationWithDetails[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const userId = user?.id;
   const router = useRouter();
   const supabase = createClient();
 
@@ -37,21 +39,15 @@ export function NotificationBell() {
   );
 
   useEffect(() => {
-    // onAuthStateChange는 초기 로드 시에도 현재 세션 상태를 한 번 뱉어주므로,
-    // getSession을 따로 호출할 필요 없이 이 안에서 초기화 로직을 모두 처리합니다.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUserId = session?.user?.id ?? null;
-      setUserId(currentUserId);
-
-      if (currentUserId) {
-        loadNotifications(currentUserId);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase, loadNotifications]);
+    if (userId) {
+      // 린트 에러 방지를 위해 비동기적으로 호출하거나 
+      // 마운트 직후 한 번 실행되도록 보장합니다.
+      const initLoad = async () => {
+        await loadNotifications(userId);
+      };
+      initLoad();
+    }
+  }, [userId, loadNotifications]);
 
   useEffect(() => {
     if (!userId) return;
