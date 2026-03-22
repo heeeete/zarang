@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
-import { toast } from 'sonner';
 
 interface LikeButtonProps {
   postId: string;

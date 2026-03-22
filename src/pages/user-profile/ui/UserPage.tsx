@@ -4,11 +4,11 @@ import Image from 'next/image';
 import { ProfilePostGrid } from '@/src/widgets/profile-post-grid/ui/ProfilePostGrid';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon, ChevronLeft } from 'lucide-react';
-import { Button } from '@/src/shared/ui/button';
 import Link from 'next/link';
 import { fetchPostsData } from '@/src/entities/post/api/post-api';
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
 import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
+import { MessageButton } from '@/src/features/chat/ui/MessageButton';
 
 interface UserPageProps {
   params: Promise<{
@@ -39,14 +39,8 @@ export const UserPage = async ({ params }: UserPageProps) => {
       to: 99,
       authorId: id,
     }),
-    supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('following_id', id),
-    supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('follower_id', id),
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', id),
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id),
   ]);
 
   const profile = profileResponse.data;
@@ -77,6 +71,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
                 fill
                 className="object-cover"
                 priority
+                sizes="78px"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-neutral-50 text-neutral-300">
@@ -98,7 +93,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
               currentUserId={currentUser?.id}
               type="followers"
               trigger={
-                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
                   <span className="text-base font-bold text-neutral-900">
                     {followersCount.count || 0}
                   </span>
@@ -113,7 +108,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
               currentUserId={currentUser?.id}
               type="following"
               trigger={
-                <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
                   <span className="text-base font-bold text-neutral-900">
                     {followingCount.count || 0}
                   </span>
@@ -127,7 +122,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
         {/* 소개글 영역 (있을 때만 표시) */}
         {profile.bio && (
           <div className="px-1">
-            <p className="text-sm leading-relaxed text-neutral-800 break-all whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed break-all whitespace-pre-wrap text-neutral-800">
               {profile.bio}
             </p>
           </div>
@@ -138,9 +133,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
           <div className="flex-1">
             <ToggleFollowButton targetUserId={id} currentUserId={currentUser?.id} />
           </div>
-          <Button variant="outline" size="sm" className="flex-1 h-7 text-xs font-bold border-neutral-200">
-            메시지
-          </Button>
+          <MessageButton targetUserId={id} currentUserId={currentUser?.id} />
         </div>
       </div>
 

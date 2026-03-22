@@ -1,12 +1,16 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { DetailPost } from '@/src/entities/post/model/types';
-import { createClient } from '@/src/shared/lib/supabase/client';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/src/app/providers/AuthProvider';
 
+/**
+ * 댓글 섹션의 비즈니스 로직을 관리하는 훅입니다.
+ */
 export const useCommentSection = (post: DetailPost) => {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const { user } = useAuth();
+  const currentUser = user ? { id: user.id } : null;
   
   // 현재 답글을 달고 있는 부모 댓글의 정보
   const [replyingTo, setReplyingTo] = useState<{
@@ -23,13 +27,6 @@ export const useCommentSection = (post: DetailPost) => {
   // 개별 댓글 요소들에 대한 참조를 저장할 Map
   const commentRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const prevCommentCount = useRef(post.comments.length);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setCurrentUser({ id: user.id });
-    });
-  }, []);
 
   // 댓글 개수가 늘어나면 최신 댓글을 화면 중앙으로 스크롤
   useEffect(() => {

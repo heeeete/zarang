@@ -5,10 +5,11 @@ import { Header } from '@/src/shared/ui/Header';
 import { BottomNav } from '@/src/shared/ui/BottomNav';
 import { Toaster } from '@/src/shared/ui/sonner';
 import { NotificationListener } from '@/src/features/notifications/ui/NotificationListener';
+import { AuthProvider } from '@/src/app/providers/AuthProvider';
 
 const roboto = Roboto({
   subsets: ['latin'],
-  weight: ['400', '500', '700'], // Roboto는 가변 폰트가 아니므로 weight 지정이 필요합니다.
+  weight: ['400', '500', '700'],
   variable: '--font-roboto',
 });
 
@@ -23,15 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={`${roboto.variable} bg-neutral-100 font-sans antialiased`}>
-        <div className="relative mx-auto flex min-h-screen max-w-[420px] flex-col bg-white pb-16 shadow-xl">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <BottomNav />
-        </div>
-        <Toaster position="top-center" />
-        <NotificationListener />
+    <html lang="ko" className={roboto.variable}>
+      <body className="bg-neutral-100 font-sans antialiased">
+        <AuthProvider>
+          <div className="relative mx-auto flex min-h-screen max-w-[420px] flex-col bg-white shadow-xl">
+            <Header />
+            <main className="flex flex-1 flex-col pb-16">{children}</main>
+            <BottomNav />
+          </div>
+          <Toaster position="top-center" />
+          <NotificationListener />
+        </AuthProvider>
       </body>
     </html>
   );

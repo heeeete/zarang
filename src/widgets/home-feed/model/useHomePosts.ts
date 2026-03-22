@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Post } from '@/src/entities/post/model/types';
 import { fetchHomePosts } from '@/src/entities/post/api/post-api';
+import { useAuth } from '@/src/app/providers/AuthProvider';
 
 const PAGE_SIZE = 12;
 
@@ -13,18 +14,12 @@ export const useHomePosts = (initialPosts: Post[]) => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialPosts.length >= PAGE_SIZE);
   const [page, setPage] = useState(1);
-  const [userId, setUserId] = useState<string | null>(null);
+  
+  // AuthProvider에서 유저 정보를 가져와 공유합니다 (중복 fetch 제거).
+  const { user } = useAuth();
+  const userId = user?.id || null;
+  
   const supabase = createClient();
-
-  useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
-    };
-    getSession();
-  }, [supabase]);
 
   const fetchNextPage = useCallback(async () => {
     if (loading || !hasMore) return;

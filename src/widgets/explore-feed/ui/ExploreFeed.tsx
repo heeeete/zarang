@@ -39,8 +39,6 @@ export const ExploreFeed = ({
     debouncedKeyword,
   );
 
-  console.log(hasMore);
-
   const observerRef = useIntersectionObserver(fetchNextPage, {
     rootMargin: '200px',
   });
