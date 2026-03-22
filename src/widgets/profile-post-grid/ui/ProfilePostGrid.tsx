@@ -35,7 +35,7 @@ export const ProfilePostGrid = ({ posts, loading }: ProfilePostGridProps) => {
   }
 
   return (
-    <div className="px-0.5">
+    <div>
       <ResponsiveMasonry columnsCountBreakPoints={{ 300: 3, 600: 3 }}>
         <Masonry gutter="2px">
           {posts.map((post) => (
@@ -43,10 +43,8 @@ export const ProfilePostGrid = ({ posts, loading }: ProfilePostGridProps) => {
           ))}
         </Masonry>
       </ResponsiveMasonry>
-      
-      {loading && posts.length === 0 && (
-        <PostSkeleton columns={3} />
-      )}
+
+      {loading && posts.length === 0 && <PostSkeleton columns={3} />}
     </div>
   );
 };

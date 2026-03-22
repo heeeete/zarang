@@ -36,7 +36,7 @@ export const CategoryDrawer = ({
     : '전체';
 
   const trigger = children || (
-    <button className="flex w-fit items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95">
+    <button id="category-filter-trigger" className="flex w-fit items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95">
       {selectedCategoryLabel}
       <ChevronDown
         className={cn(
