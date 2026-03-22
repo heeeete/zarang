@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Post } from '@/src/entities/post/model/types';
 import { fetchHomePosts } from '@/src/entities/post/api/post-api';
@@ -15,6 +15,9 @@ export const useHomePosts = (initialPosts: Post[]) => {
   const [hasMore, setHasMore] = useState(initialPosts.length >= PAGE_SIZE);
   const [page, setPage] = useState(1);
   
+  // 🚨 성능 최적화: 동기적 락(Lock)을 통해 중복 페칭을 완벽히 차단합니다.
+  const loadingRef = useRef(false);
+
   // AuthProvider에서 유저 정보를 가져와 공유합니다 (중복 fetch 제거).
   const { user } = useAuth();
   const userId = user?.id || null;
@@ -22,9 +25,12 @@ export const useHomePosts = (initialPosts: Post[]) => {
   const supabase = createClient();
 
   const fetchNextPage = useCallback(async () => {
-    if (loading || !hasMore) return;
+    // loadingRef를 통해 비동기 상태 지연으로 인한 중복 실행을 100% 막습니다.
+    if (loadingRef.current || !hasMore) return;
 
+    loadingRef.current = true;
     setLoading(true);
+    
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
@@ -45,9 +51,10 @@ export const useHomePosts = (initialPosts: Post[]) => {
       console.error('홈 피드 추천 데이터 로드 실패:', err);
       setHasMore(false);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [loading, hasMore, page, supabase, userId]);
+  }, [hasMore, page, supabase, userId]);
 
   return {
     posts,

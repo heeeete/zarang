@@ -171,12 +171,38 @@ export const ChatRoomPage = () => {
     }
   }, [roomId, targetUserId, supabase, currentUser, router]);
 
-  // 4. 스크롤 제어
+  // 🚨 성능 및 UX 최적화: 스마트 스크롤 (Smart Scroll)
+  const prevScrollHeight = useRef<number>(0);
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const currentScrollHeight = el.scrollHeight;
+    const prevHeight = prevScrollHeight.current;
+    prevScrollHeight.current = currentScrollHeight;
+
+    const lastMessage = messages[messages.length - 1];
+    const isMyMessage = lastMessage?.sender_id === currentUser?.id;
+
+    // 1. 초기 로딩 시 무조건 바닥으로 이동 (깜빡임 없이)
+    if (prevHeight === 0 || messages.length === 0) {
+      el.scrollTop = currentScrollHeight;
+      return;
     }
-  }, [messages]);
+
+    // 2. 스마트 스크롤 조건: 
+    // - 내가 방금 보낸 메시지인 경우
+    // - 스크롤이 바닥에서 150px 이내로 근접해 있던 경우 (최신 대화를 보고 있던 중)
+    const isNearBottom = el.scrollTop + el.clientHeight >= prevHeight - 150;
+
+    if (isMyMessage || isNearBottom) {
+      el.scrollTo({
+        top: currentScrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages, currentUser]);
 
   if (isLoading) return null;
 

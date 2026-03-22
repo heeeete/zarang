@@ -18,7 +18,7 @@ interface HomeFeedProps {
 export const HomeFeed = ({ initialPosts, isAuthenticated = false }: HomeFeedProps) => {
   const { posts, loading, hasMore, fetchNextPage } = useHomePosts(initialPosts);
   const observerRef = useIntersectionObserver(fetchNextPage, {
-    rootMargin: '200px',
+    rootMargin: '50px',
   });
 
   // 홈페이지 사용자 가이드 설정
