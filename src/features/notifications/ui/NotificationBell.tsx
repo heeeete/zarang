@@ -37,23 +37,16 @@ export function NotificationBell() {
   );
 
   useEffect(() => {
-    const initSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUserId(session.user.id);
-        loadNotifications(session.user.id);
-      }
-    };
-    initSession();
-
+    // onAuthStateChange는 초기 로드 시에도 현재 세션 상태를 한 번 뱉어주므로,
+    // getSession을 따로 호출할 필요 없이 이 안에서 초기화 로직을 모두 처리합니다.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null);
-      if (session?.user) {
-        loadNotifications(session.user.id);
+      const currentUserId = session?.user?.id ?? null;
+      setUserId(currentUserId);
+      
+      if (currentUserId) {
+        loadNotifications(currentUserId);
       }
     });
 
