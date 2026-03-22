@@ -44,7 +44,7 @@ export function NotificationBell() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUserId = session?.user?.id ?? null;
       setUserId(currentUserId);
-      
+
       if (currentUserId) {
         loadNotifications(currentUserId);
       }
@@ -109,7 +109,11 @@ export function NotificationBell() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<Button id="notification-bell" variant="ghost" size="icon" className="relative h-9 w-9" />}>
+      <SheetTrigger
+        render={
+          <Button id="notification-bell" variant="ghost" size="icon" className="relative h-9 w-9" />
+        }
+      >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white" />
@@ -117,7 +121,7 @@ export function NotificationBell() {
       </SheetTrigger>
       <SheetContent
         showCloseButton={false}
-        className="flex h-full w-full flex-col bg-white p-0 sm:max-w-md"
+        className="flex h-full w-full flex-col gap-0 bg-white p-0 sm:max-w-md"
       >
         <AppSheetHeader
           title="알림"

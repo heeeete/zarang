@@ -9,8 +9,10 @@ import { Category } from '@/src/entities/post/model/schema';
  */
 export const WritePage = async () => {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/login');

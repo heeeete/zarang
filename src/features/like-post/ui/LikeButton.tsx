@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ export const LikeButton = ({ postId, initialLikeCount, initialIsLiked }: LikeBut
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const toggleLike = async () => {
     if (isLoading) return;
@@ -31,9 +33,10 @@ export const LikeButton = ({ postId, initialLikeCount, initialIsLiked }: LikeBut
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('로그인이 필요한 서비스예요.');
+          // 안내 메시지 대신 로그인 페이지로 이동
+          router.push('/login');
+          
           // Revert
-
           setIsLiked(isLiked);
           setLikeCount(likeCount);
         } else {

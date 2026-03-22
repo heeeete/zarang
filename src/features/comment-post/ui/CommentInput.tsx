@@ -72,7 +72,7 @@ export const CommentInput = ({
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('로그인이 필요한 서비스예요.');
+          router.push('/login');
         } else {
           throw new Error(isEditing ? '댓글을 수정하지 못했어요.' : '댓글을 등록하지 못했어요.');
         }

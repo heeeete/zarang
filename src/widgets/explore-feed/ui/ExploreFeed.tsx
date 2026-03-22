@@ -96,7 +96,7 @@ export const ExploreFeed = ({
       </div>
 
       {/* Masonry 피드 영역 */}
-      <div id="explore-feed-grid" className="w-full flex-1 px-2 py-3">
+      <div id="explore-feed-grid" className="w-full flex-1 py-2">
         <PostGrid posts={posts} loading={loading} />
         <InfiniteScrollTrigger
           ref={observerRef}

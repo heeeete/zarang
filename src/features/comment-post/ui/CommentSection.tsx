@@ -6,6 +6,7 @@ import { ko } from 'date-fns/locale';
 import { User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { DetailPost } from '@/src/entities/post/model/types';
 import { CommentInput } from './CommentInput';
@@ -52,6 +53,15 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
   } = useCommentSection(post);
 
   const isPostOwner = currentUser?.id === post.author_id;
+  const router = useRouter();
+
+  const onReplyClick = (parentId: string, username: string, replyToId: string) => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    handleReplyClick(parentId, username, replyToId);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -115,7 +125,7 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
                     <HighlightMention content={comment.content} />
                     <button
                       onClick={() =>
-                        handleReplyClick(
+                        onReplyClick(
                           comment.id,
                           comment.author?.username || '알 수 없음',
                           comment.id,
@@ -182,7 +192,7 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
                         <HighlightMention content={reply.content} />
                         <button
                           onClick={() =>
-                            handleReplyClick(
+                            onReplyClick(
                               comment.id,
                               reply.author?.username || '알 수 없음',
                               reply.id,
