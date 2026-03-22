@@ -31,7 +31,8 @@ export const HomeFeed = ({ initialPosts, isAuthenticated = false }: HomeFeedProp
         element: '#home-feed-grid',
         popover: {
           title: '반가워요! 👋',
-          description: '사용자님이 좋아하실 만한 게시글들을 모아봤어요. 아래로 내리며 구경해 볼까요?',
+          description:
+            '사용자님이 좋아하실 만한 게시글들을 모아봤어요. 아래로 내리며 구경해 볼까요?',
           side: 'bottom',
           align: 'start',
         },
@@ -47,7 +48,6 @@ export const HomeFeed = ({ initialPosts, isAuthenticated = false }: HomeFeedProp
       },
     ],
   });
-
 
   return (
     <div id="home-feed-grid" className="flex flex-col py-2">

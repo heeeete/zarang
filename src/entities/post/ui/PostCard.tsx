@@ -20,6 +20,7 @@ export const PostCard = ({ post }: PostCardProps) => {
     <div className="flex w-full flex-col bg-[#FAFAF9]">
       <Link
         href={`/posts/${post.id}`}
+        prefetch={false}
         className="group relative block w-full overflow-hidden bg-neutral-100 transition-all active:scale-[0.98]"
       >
         {optimizedImage ? (
@@ -52,6 +53,7 @@ export const PostCard = ({ post }: PostCardProps) => {
         {/* 프로필 정보 */}
         <Link
           href={`/users/${post.author_id}`}
+          prefetch={false}
           className="flex min-w-0 items-center gap-1.5 transition-opacity hover:opacity-70"
         >
           <div className="relative size-5 shrink-0 overflow-hidden rounded-full border">

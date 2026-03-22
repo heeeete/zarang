@@ -17,9 +17,10 @@ export const ProfilePostCard = ({ post }: ProfilePostCardProps) => {
   const optimizedImage = getOptimizedImageUrl(post.thumbnail_url, 400);
 
   return (
-    <div className="w-full pb-0.5">
+    <div className="w-full">
       <Link
         href={`/posts/${post.id}`}
+        prefetch={false}
         className="group relative block w-full overflow-hidden bg-neutral-100 transition-all active:scale-[0.98]"
       >
         {optimizedImage ? (

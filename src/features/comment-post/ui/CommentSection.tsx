@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { DetailPost } from '@/src/entities/post/model/types';
 import { CommentInput } from './CommentInput';
@@ -71,7 +72,11 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
               <Fragment key={comment.id}>
                 {/* 최상위 댓글 */}
                 <div ref={setCommentRef(comment.id)} className="flex scroll-mt-20 gap-3.5">
-                  <div className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full border bg-muted">
+                  <Link
+                    href={`/users/${comment.author_id}`}
+                    prefetch={false}
+                    className="relative h-8.5 w-8.5 shrink-0 overflow-hidden rounded-full border bg-muted transition-opacity hover:opacity-80"
+                  >
                     {comment.author?.avatar_url ? (
                       <Image
                         src={getOptimizedImageUrl(comment.author.avatar_url, 64) || ''}
@@ -84,13 +89,17 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
                         <UserIcon className="size-4" />
                       </div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-neutral-900">
+                        <Link
+                          href={`/users/${comment.author_id}`}
+                          prefetch={false}
+                          className="text-xs font-bold text-neutral-900 hover:underline"
+                        >
                           {comment.author?.username}
-                        </span>
+                        </Link>
                         <span className="text-[10px] text-muted-foreground">
                           {formatDistanceToNow(new Date(comment.created_at), { locale: ko })} 전
                         </span>
@@ -130,7 +139,11 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
                       ref={setCommentRef(reply.id)}
                       className="ml-10 flex scroll-mt-20 gap-3.5"
                     >
-                      <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border bg-muted">
+                      <Link
+                        href={`/users/${reply.author_id}`}
+                        prefetch={false}
+                        className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border bg-muted transition-opacity hover:opacity-80"
+                      >
                         {reply.author?.avatar_url ? (
                           <Image
                             src={getOptimizedImageUrl(reply.author.avatar_url, 64) || ''}
@@ -143,13 +156,17 @@ export const CommentSection = ({ post }: CommentSectionProps) => {
                             <UserIcon className="size-3.5" />
                           </div>
                         )}
-                      </div>
+                      </Link>
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-900">
+                            <Link
+                              href={`/users/${reply.author_id}`}
+                              prefetch={false}
+                              className="text-xs font-bold text-neutral-900 hover:underline"
+                            >
                               {reply.author?.username}
-                            </span>
+                            </Link>
                             <span className="text-[10px] text-muted-foreground">
                               {formatDistanceToNow(new Date(reply.created_at), { locale: ko })} 전
                             </span>
