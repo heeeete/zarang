@@ -7,7 +7,7 @@ interface ExploreSearchBarProps {
 
 export const ExploreSearchBar = ({ value, onChange }: ExploreSearchBarProps) => {
   return (
-    <div className="relative w-full">
+    <div id="explore-search-bar" className="relative w-full">
       <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400" />
       <input
         type="text"
