@@ -9,10 +9,12 @@ import { GoogleIcon, KakaoIcon } from '@/src/shared/ui/SocialIcons';
 export const SocialLoginButtons = () => {
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const next = searchParams?.get('next') || '/';
+  
+  // 미들웨어나 이전 로직에서 넘겨주는 redirect 또는 next 파라미터를 읽습니다.
+  const redirectToPath = searchParams?.get('redirect') || searchParams?.get('next') || '/';
 
   const handleLogin = async (provider: 'google' | 'kakao' | 'naver') => {
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectToPath)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as Provider,

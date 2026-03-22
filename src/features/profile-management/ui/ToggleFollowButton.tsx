@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Button } from '@/src/shared/ui/button';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ export const ToggleFollowButton = ({
   const [isFollowedBy, setIsFollowedBy] = useState<boolean | null>(initialIsFollowedBy); // 상대방이 나를 팔로우하는지 여부
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     // 초기값이 이미 제공되었다면 DB 조회를 생략합니다. (N+1 최적화)
@@ -61,7 +63,7 @@ export const ToggleFollowButton = ({
 
   const handleToggleFollow = async () => {
     if (!currentUserId) {
-      toast.error('로그인이 필요해요. 로그인 후에 팔로우해 보세요!');
+      router.push('/login');
       return;
     }
 

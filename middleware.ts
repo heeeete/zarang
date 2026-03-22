@@ -13,7 +13,11 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isProtectedRoute =
-    request.nextUrl.pathname.startsWith('/write') || request.nextUrl.pathname.startsWith('/me');
+    request.nextUrl.pathname.startsWith('/write') ||
+    request.nextUrl.pathname.startsWith('/me') ||
+    request.nextUrl.pathname.startsWith('/users');
+
+  console.log(user);
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
