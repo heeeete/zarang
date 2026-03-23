@@ -19,6 +19,10 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
   const [rooms, setRooms] = useState<ChatRoom[]>(initialRooms);
   const supabase = createClient();
 
+  useEffect(() => {
+    setRooms(initialRooms);
+  }, [initialRooms]);
+
   // 실시간 구독: 내 채팅방들과 관련된 새 메시지가 올 때 목록 갱신
   useEffect(() => {
     const channel = supabase
@@ -31,7 +35,7 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
           // (더 효율적으로 상태만 변경할 수도 있지만, 읽음 상태나 안 읽은 개수 계산을 위해 재조회가 안전함)
           const updatedRooms = await fetchChatRooms(supabase, userId);
           setRooms(updatedRooms);
-        }
+        },
       )
       .subscribe();
 
@@ -42,8 +46,12 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
 
   // 최신 메시지 순으로 정렬 (주고받은 메시지 기준)
   const sortedRooms = [...rooms].sort((a, b) => {
-    const aTime = a.last_message ? new Date(a.last_message.created_at).getTime() : new Date(a.created_at).getTime();
-    const bTime = b.last_message ? new Date(b.last_message.created_at).getTime() : new Date(b.created_at).getTime();
+    const aTime = a.last_message
+      ? new Date(a.last_message.created_at).getTime()
+      : new Date(a.created_at).getTime();
+    const bTime = b.last_message
+      ? new Date(b.last_message.created_at).getTime()
+      : new Date(b.created_at).getTime();
     return bTime - aTime;
   });
 
@@ -53,9 +61,7 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
         <div className="flex size-16 items-center justify-center rounded-full bg-neutral-50">
           <MessageSquare className="size-8" />
         </div>
-        <p className="text-sm font-medium text-neutral-500">
-          아직 주고받은 메시지가 없어요.
-        </p>
+        <p className="text-sm font-medium text-neutral-500">아직 주고받은 메시지가 없어요.</p>
       </div>
     );
   }
@@ -63,7 +69,7 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
   return (
     <div className="flex flex-col">
       {sortedRooms.map((room) => {
-        const otherParticipant = room.participants.find(p => p.user_id !== userId);
+        const otherParticipant = room.participants.find((p) => p.user_id !== userId);
         const otherUser = otherParticipant?.user;
         const unreadCount = room.unread_count || 0;
 
@@ -102,17 +108,16 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
                   </span>
                 )}
               </div>
-              
+
               <div className="flex items-center justify-between gap-2">
-                <p className={`truncate text-xs flex-1 ${unreadCount > 0 ? 'text-neutral-900 font-bold' : 'text-neutral-500 font-medium'}`}>
-                  {unreadCount > 1 
-                    ? `새 메시지 ${unreadCount}개` 
-                    : (room.last_message?.content || '대화를 시작해보세요!')
-                  }
+                <p
+                  className={`flex-1 truncate text-xs ${unreadCount > 0 ? 'font-bold text-neutral-900' : 'font-medium text-neutral-500'}`}
+                >
+                  {unreadCount > 1
+                    ? `새 메시지 ${unreadCount}개`
+                    : room.last_message?.content || '대화를 시작해보세요!'}
                 </p>
-                {unreadCount > 0 && (
-                  <div className="size-2 shrink-0 rounded-full bg-primary" />
-                )}
+                {unreadCount > 0 && <div className="size-2 shrink-0 rounded-full bg-primary" />}
               </div>
             </div>
             <ChevronRight className="size-4 shrink-0 text-neutral-300" />

@@ -44,7 +44,9 @@ export const ChatRoomClient = ({
   // ChatRoomClient.tsx
   useEffect(() => {
     return () => {
-      router.refresh(); // 채팅방에서 나갈 때 항상 실행
+      setTimeout(() => {
+        router.refresh(); // 채팅방에서 나갈 때 항상 실행
+      }, 100);
     };
   }, [router]);
 
