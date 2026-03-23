@@ -6,6 +6,7 @@ import { BottomNav } from '@/src/shared/ui/BottomNav';
 import { Toaster } from '@/src/shared/ui/sonner';
 import { NotificationListener } from '@/src/features/notifications/ui/NotificationListener';
 import { AuthProvider } from '@/src/app/providers/AuthProvider';
+import { Analytics } from '@vercel/analytics/next';
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function RootLayout({
           <Toaster position="top-center" />
           <NotificationListener />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
