@@ -25,14 +25,12 @@ export const WritePage = async () => {
     .order('sort_order', { ascending: true });
 
   return (
-    <div className="flex min-h-full flex-col bg-white">
+    <div className="flex flex-col bg-white">
       <header className="sticky top-0 z-50 flex h-14 items-center justify-center border-b bg-white/90 px-4 backdrop-blur-md">
         <h2 className="text-sm font-semibold text-neutral-900">새 자랑거리 작성</h2>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-10">
-        <PostCreateForm categories={(categories as Category[]) || []} />
-      </main>
+      <PostCreateForm categories={(categories as Category[]) || []} />
     </div>
   );
 };
