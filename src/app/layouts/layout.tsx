@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="ko" className={roboto.variable}>
       <body className="bg-neutral-100 font-sans antialiased">
         <AuthProvider>
-          <div className="relative mx-auto flex min-h-screen max-w-[420px] flex-col bg-white shadow-xl">
+          <div className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col bg-white shadow-xl">
             <Header />
             <main className="flex flex-1 flex-col pb-16">{children}</main>
             <BottomNav />
