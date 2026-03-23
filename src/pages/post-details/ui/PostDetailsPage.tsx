@@ -38,6 +38,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   // 캐싱된 게시글 정보를 가져옵니다.
   const post = (await getPostDetail(supabase, id)) as DetailPost | null;
 
+  // 게시글이 존재하지 않거나 null인 경우 404 페이지로 이동
   if (!post) {
     notFound();
   }
