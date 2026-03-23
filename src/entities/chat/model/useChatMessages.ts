@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Message, ChatUserProfile } from './types';
+import { updateLastReadAt } from '../api/chat-api';
 
-export const useChatMessages = (roomId: string | null, initialMessages: Message[], initialTargetProfile?: ChatUserProfile | null) => {
+export const useChatMessages = (roomId: string | null, initialMessages: Message[], initialTargetProfile?: ChatUserProfile | null, currentUserId?: string) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const participantsCache = useRef<Record<string, ChatUserProfile>>({});
   const supabase = createClient();
@@ -21,6 +22,13 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
     });
   }, [initialMessages, initialTargetProfile]);
 
+  // 진입 시 읽음 처리
+  useEffect(() => {
+    if (roomId && currentUserId) {
+      updateLastReadAt(supabase, roomId, currentUserId);
+    }
+  }, [roomId, currentUserId, supabase]);
+
   // 실시간 구독
   useEffect(() => {
     if (!roomId) return;
@@ -32,6 +40,12 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` },
         async (payload) => {
           const newMessage = payload.new as Message;
+          
+          // 새 메시지가 오면 읽음 처리 업데이트 (내가 보낸 게 아닐 때만)
+          if (currentUserId && newMessage.sender_id !== currentUserId) {
+            updateLastReadAt(supabase, roomId, currentUserId);
+          }
+
           let sender = participantsCache.current[newMessage.sender_id];
           
           if (!sender) {
@@ -55,7 +69,7 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomId, supabase]);
+  }, [roomId, supabase, currentUserId]);
 
   return { messages, setMessages };
 };

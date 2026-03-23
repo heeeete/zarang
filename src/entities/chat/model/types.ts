@@ -10,6 +10,7 @@ export interface ChatRoom {
   created_at: string;
   last_message?: Message;
   participants: ChatParticipant[];
+  unread_count?: number;
 }
 
 export interface ChatParticipant {
