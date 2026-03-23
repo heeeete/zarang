@@ -27,6 +27,18 @@ export interface Post {
   };
 }
 
+export interface PostComment {
+  id: string;
+  content: string;
+  author_id: string;
+  created_at: string;
+  parent_id: string | null;
+  author: {
+    username: string;
+    avatar_url: string | null;
+  } | null;
+}
+
 /**
  * 게시글 상세 정보 인터페이스입니다.
  */
@@ -38,17 +50,7 @@ export interface DetailPost extends Post {
     height: number | null;
   }[];
   likes: { count: number }[];
-  comments: {
-    id: string;
-    content: string;
-    author_id: string;
-    created_at: string;
-    parent_id: string | null;
-    author: {
-      username: string;
-      avatar_url: string | null;
-    } | null;
-  }[];
+  comments: PostComment[];
 }
 
 /**

@@ -10,24 +10,30 @@ import {
 import { Button } from '@/src/shared/ui/button';
 import { EllipsisIcon, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useCommentActions } from '../model/useCommentActions';
 
 interface CommentActionMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
+  commentId: string;
+  content: string;
   isOwner: boolean; // 댓글 작성자 본인인지 여부
 }
 
-export const CommentActionMenu = ({ onEdit, onDelete, isOwner }: CommentActionMenuProps) => {
+/**
+ * 댓글 관리 메뉴 (Feature UI Component)
+ * 비즈니스 로직은 useCommentActions 훅을 사용하여 내부적으로 처리합니다.
+ */
+export const CommentActionMenu = ({ commentId, content, isOwner }: CommentActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { handleEdit, handleDelete } = useCommentActions(commentId, content);
 
-  const handleEdit = () => {
+  const onEditClick = () => {
     setIsOpen(false);
-    onEdit();
+    handleEdit();
   };
 
-  const handleDelete = () => {
+  const onDeleteClick = async () => {
     setIsOpen(false);
-    onDelete();
+    await handleDelete();
   };
 
   return (
@@ -44,7 +50,7 @@ export const CommentActionMenu = ({ onEdit, onDelete, isOwner }: CommentActionMe
             <Button
               variant="ghost"
               className="h-14 w-full justify-start gap-3 text-base font-medium"
-              onClick={handleEdit}
+              onClick={onEditClick}
             >
               <Pencil className="size-5" />
               수정하기
@@ -53,7 +59,7 @@ export const CommentActionMenu = ({ onEdit, onDelete, isOwner }: CommentActionMe
           <Button
             variant="ghost"
             className="h-14 w-full justify-start gap-3 text-base font-medium text-red-500 hover:bg-red-50 hover:text-red-600"
-            onClick={handleDelete}
+            onClick={onDeleteClick}
           >
             <Trash2 className="size-5" />
             삭제하기
