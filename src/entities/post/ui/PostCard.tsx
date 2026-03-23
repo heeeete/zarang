@@ -7,12 +7,13 @@ import { Post } from '../model/types';
 
 interface PostCardProps {
   post: Post;
+  priority?: boolean;
 }
 
 /**
  * 메이슨리 레이아웃용 게시물 카드입니다.
  */
-export const PostCard = ({ post }: PostCardProps) => {
+export const PostCard = ({ post, priority = false }: PostCardProps) => {
   const aspectRatio = post.width && post.height ? post.width / post.height : 1;
   const optimizedImage = getOptimizedImageUrl(post.thumbnail_url, 400);
 
@@ -31,7 +32,7 @@ export const PostCard = ({ post }: PostCardProps) => {
               fill
               className="object-cover transition-transform duration-200 group-hover:scale-105"
               sizes="(max-width: 420px) 50vw, 200px"
-              priority
+              priority={priority}
             />
 
             {/* 좌측 상단: 사운드 아이콘 (오디오가 있는 경우만) */}
