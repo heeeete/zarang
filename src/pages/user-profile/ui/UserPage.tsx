@@ -130,9 +130,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
 
         {/* 하단: 액션 버튼 (팔로우) */}
         <div className="flex gap-2">
-          <div className="flex-1">
-            <ToggleFollowButton targetUserId={id} currentUserId={currentUser?.id} />
-          </div>
+          <ToggleFollowButton targetUserId={id} currentUserId={currentUser?.id} />
           <MessageButton targetUserId={id} currentUserId={currentUser?.id} />
         </div>
       </div>

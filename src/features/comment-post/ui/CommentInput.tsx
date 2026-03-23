@@ -1,101 +1,31 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/src/shared/ui/button';
-import { toast } from 'sonner';
 import { X } from 'lucide-react';
+import { useCommentInput } from '../model/useCommentInput';
 
 interface CommentInputProps {
   postId: string;
-  replyingTo?: {
-    parentId: string;
-    username: string;
-  } | null;
-  editingComment?: {
-    id: string;
-    content: string;
-  } | null;
-  onCancelReply?: () => void;
-  onCancelEdit?: () => void;
 }
 
+/**
+ * 댓글 입력창 (View 전용 Component)
+ * 비즈니스 로직은 useCommentInput 훅으로 위임합니다.
+ */
 export const CommentInput = ({
   postId,
-  replyingTo,
-  editingComment,
-  onCancelReply,
-  onCancelEdit,
 }: CommentInputProps) => {
-  const [content, setContent] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // 답글 달기 버튼 클릭 시 입력창에 멘션 추가 및 포커스
-  useEffect(() => {
-    if (replyingTo) {
-      setContent(`@${replyingTo.username} `);
-      inputRef.current?.focus();
-    }
-  }, [replyingTo]);
-
-  // 수정 버튼 클릭 시 기존 내용 입력창에 채우기 및 포커스
-  useEffect(() => {
-    if (editingComment) {
-      setContent(editingComment.content);
-      inputRef.current?.focus();
-    }
-  }, [editingComment]);
-
-  const handleSubmit = async () => {
-    if (!content.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      const isEditing = !!editingComment;
-      const url = isEditing
-        ? `/api/comments/${editingComment.id}`
-        : `/api/posts/${postId}/comments`;
-      const method = isEditing ? 'PATCH' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-          parent_id: replyingTo?.parentId || null,
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/login');
-        } else {
-          throw new Error(isEditing ? '댓글을 수정하지 못했어요.' : '댓글을 등록하지 못했어요.');
-        }
-      } else {
-        setContent('');
-        if (isEditing) {
-          if (onCancelEdit) onCancelEdit();
-          toast.success('댓글을 수정했습니다.');
-        } else {
-          if (onCancelReply) onCancelReply();
-          toast.success(replyingTo ? '답글을 남겼어요.' : '댓글을 남겼어요.');
-        }
-        router.refresh();
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했어요.';
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const isEditing = !!editingComment;
+  const {
+    content,
+    setContent,
+    isSubmitting,
+    inputRef,
+    replyingTo,
+    isEditing,
+    handleSubmit,
+    onCancelReply,
+    onCancelEdit,
+  } = useCommentInput(postId);
 
   return (
     <div

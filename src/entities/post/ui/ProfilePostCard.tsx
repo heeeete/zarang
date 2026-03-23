@@ -6,13 +6,14 @@ import { Post } from '../model/types';
 
 interface ProfilePostCardProps {
   post: Post;
+  priority?: boolean;
 }
 
 /**
  * 프로필 페이지 전용 Masonry 카드입니다.
  * 이미지 비율을 유지하며, 작성자 정보와 지표 없이 이미지만 보여줍니다.
  */
-export const ProfilePostCard = ({ post }: ProfilePostCardProps) => {
+export const ProfilePostCard = ({ post, priority = false }: ProfilePostCardProps) => {
   const aspectRatio = post.width && post.height ? post.width / post.height : 1;
   const optimizedImage = getOptimizedImageUrl(post.thumbnail_url, 400);
 
@@ -31,6 +32,7 @@ export const ProfilePostCard = ({ post }: ProfilePostCardProps) => {
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 420px) 33vw, 140px"
+              priority={priority}
             />
 
             {/* 우측 상단: 사운드 아이콘 (오디오가 있는 경우만) */}
