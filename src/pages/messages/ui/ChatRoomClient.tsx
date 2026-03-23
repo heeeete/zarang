@@ -32,7 +32,7 @@ export const ChatRoomClient = ({
   const [roomId, setRoomId] = useState<string | null>(initialRoomId);
 
   // 1. 메시지 상태 및 실시간 구독 (Entities)
-  const { messages } = useChatMessages(roomId, initialMessages, targetProfile);
+  const { messages } = useChatMessages(roomId, initialMessages, targetProfile, authUser?.id);
 
   // 2. 메시지 전송 및 방 생성 로직 (Features)
   const { handleSend } = useChatActions(roomId, setRoomId, targetUserId);

@@ -26,6 +26,7 @@ export const fetchChatRooms = async (supabase: SupabaseClient<Database>, userId:
       created_at,
       participants:chat_participants (
         user_id,
+        last_read_at,
         user:profiles (id, username, avatar_url)
       ),
       messages (
@@ -36,17 +37,28 @@ export const fetchChatRooms = async (supabase: SupabaseClient<Database>, userId:
       )
     `)
     .in('id', roomIds)
-    .order('created_at', { referencedTable: 'messages', ascending: false })
-    .limit(1, { referencedTable: 'messages' });
+    .order('created_at', { referencedTable: 'messages', ascending: false });
 
   if (roomsError) throw roomsError;
 
   const rawRooms = (roomsData as unknown as (ChatRoom & { messages: Message[] })[]) || [];
 
-  return rawRooms.map(room => ({
-    ...room,
-    last_message: room.messages?.[0]
-  }));
+  return rawRooms.map(room => {
+    // 내가 참여한 정보 찾기
+    const myParticipant = room.participants.find(p => p.user_id === userId);
+    const lastReadAt = myParticipant?.last_read_at || new Date(0).toISOString();
+
+    // 안 읽은 메시지 수 계산 (내가 보낸 게 아니고, 마지막 읽은 시간 이후인 것)
+    const unreadMessages = room.messages.filter(
+      m => m.sender_id !== userId && m.created_at > lastReadAt
+    );
+
+    return {
+      ...room,
+      last_message: room.messages?.[0], // 정렬 결과의 첫 번째가 최신 메시지
+      unread_count: unreadMessages.length
+    };
+  });
 };
 
 /**
@@ -162,4 +174,19 @@ export const getOrCreateChatRoom = async (
   ] as unknown as Database['public']['Tables']['profiles']['Insert'][]);
 
   return createdRoom.id;
+};
+
+/**
+ * 특정 채팅방의 마지막 읽은 시간을 현재로 업데이트합니다.
+ */
+export const updateLastReadAt = async (
+  supabase: SupabaseClient<Database>,
+  roomId: string,
+  userId: string
+) => {
+  await supabase
+    .from('chat_participants' as 'profiles')
+    .update({ last_read_at: new Date().toISOString() } as unknown as Database['public']['Tables']['profiles']['Insert'])
+    .eq('room_id', roomId)
+    .eq('user_id', userId);
 };
