@@ -104,13 +104,13 @@ export const sendMessage = async (
 };
 
 /**
- * 두 유저 사이의 채팅방을 찾거나 새로 생성합니다 (1:1 채팅).
+ * 두 유저 사이의 기존 채팅방이 있는지 확인합니다.
  */
-export const getOrCreateChatRoom = async (
+export const findExistingChatRoom = async (
   supabase: SupabaseClient<Database>,
   myId: string,
   targetUserId: string
-): Promise<string> => {
+): Promise<string | null> => {
   const { data: myParticipations } = await supabase
     .from('chat_participants' as 'profiles')
     .select('room_id')
@@ -131,6 +131,20 @@ export const getOrCreateChatRoom = async (
 
     if (commonRoom) return (commonRoom as unknown as { room_id: string }).room_id;
   }
+  
+  return null;
+};
+
+/**
+ * 두 유저 사이의 채팅방을 찾거나 새로 생성합니다 (1:1 채팅).
+ */
+export const getOrCreateChatRoom = async (
+  supabase: SupabaseClient<Database>,
+  myId: string,
+  targetUserId: string
+): Promise<string> => {
+  const existingRoomId = await findExistingChatRoom(supabase, myId, targetUserId);
+  if (existingRoomId) return existingRoomId;
 
   const { data: newRoom, error: roomError } = await supabase
     .from('chat_rooms' as 'profiles')
