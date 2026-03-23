@@ -104,7 +104,7 @@ export const ChatRoomClient = ({
                   {msg.content}
                 </div>
                 <span className="px-1 text-[9px] text-neutral-400">
-                  {new Date(msg.created_at).toLocaleTimeString([], {
+                  {new Date(msg.created_at).toLocaleTimeString('ko-KR', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
