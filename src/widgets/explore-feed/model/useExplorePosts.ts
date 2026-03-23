@@ -22,6 +22,12 @@ export const useExplorePosts = (
   const isInitialRender = useRef(true);
   const supabase = createClient();
 
+  useEffect(() => {
+    setPosts(initialPosts);
+    setHasMore(initialPosts.length === PAGE_SIZE);
+    setPage(1);
+  }, [initialPosts]);
+
   const fetchPosts = useCallback(
     async (pageNum: number, isReset = false) => {
       if (loadingRef.current && !isReset) return;

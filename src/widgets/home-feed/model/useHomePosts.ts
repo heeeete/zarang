@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Post } from '@/src/entities/post/model/types';
 import { fetchHomePosts } from '@/src/entities/post/api/post-api';
@@ -14,14 +14,21 @@ export const useHomePosts = (initialPosts: Post[]) => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialPosts.length >= PAGE_SIZE);
   const [page, setPage] = useState(1);
-  
+
+  useEffect(() => {
+    // 초기 데이터가 변경될 때마다 상태를 업데이트합니다.
+    setPosts(initialPosts);
+    setHasMore(initialPosts.length >= PAGE_SIZE);
+    setPage(1);
+  }, [initialPosts]);
+
   // 🚨 성능 최적화: 동기적 락(Lock)을 통해 중복 페칭을 완벽히 차단합니다.
   const loadingRef = useRef(false);
 
   // AuthProvider에서 유저 정보를 가져와 공유합니다 (중복 fetch 제거).
   const { user } = useAuth();
   const userId = user?.id || null;
-  
+
   const supabase = createClient();
 
   const fetchNextPage = useCallback(async () => {
@@ -30,7 +37,7 @@ export const useHomePosts = (initialPosts: Post[]) => {
 
     loadingRef.current = true;
     setLoading(true);
-    
+
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
