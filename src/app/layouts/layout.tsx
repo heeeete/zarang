@@ -7,6 +7,7 @@ import { Toaster } from '@/src/shared/ui/sonner';
 import { NotificationListener } from '@/src/features/notifications/ui/NotificationListener';
 import { AuthProvider } from '@/src/app/providers/AuthProvider';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({
           <NotificationListener />
         </AuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
