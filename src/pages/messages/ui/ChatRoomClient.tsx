@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -40,6 +40,13 @@ export const ChatRoomClient = ({
 
   // 3. 스마트 스크롤 관리 (Pages/Lib)
   const { scrollRef, isReady } = useChatScroll(messages, authUser?.id);
+
+  // ChatRoomClient.tsx
+  useEffect(() => {
+    return () => {
+      router.refresh(); // 채팅방에서 나갈 때 항상 실행
+    };
+  }, [router]);
 
   const onSendMessage = (content: string) => {
     if (authUser) handleSend(content, authUser.id);
