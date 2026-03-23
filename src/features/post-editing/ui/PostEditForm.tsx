@@ -18,7 +18,11 @@ import {
 import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
 
 // Entity Layer Imports
-import { postFormSchema, type PostFormInput, type Category } from '@/src/entities/post/model/schema';
+import {
+  postFormSchema,
+  type PostFormInput,
+  type Category,
+} from '@/src/entities/post/model/schema';
 import { usePostImageManager, PostImageItem } from '@/src/entities/post/model/usePostImageManager';
 import { SortableImageItem } from '@/src/entities/post/ui/SortableImageItem';
 import { VoiceRecorder } from '@/src/entities/post/ui/VoiceRecorder';
@@ -59,10 +63,10 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   const router = useRouter();
 
   // 초기 이미지 데이터 변환
-  const initialImages: PostImageItem[] = post.images.map(img => ({
+  const initialImages: PostImageItem[] = post.images.map((img) => ({
     id: img.id,
     url: img.image_url,
-    type: 'existing'
+    type: 'existing',
   }));
 
   const {
@@ -81,25 +85,21 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
     },
   });
 
-  const {
-    imageItems,
-    deletedImageIds,
-    addImages,
-    removeImage,
-    reorderImages,
-  } = usePostImageManager(initialImages, setValue);
+  const { imageItems, deletedImageIds, addImages, removeImage, reorderImages } =
+    usePostImageManager(initialImages, setValue);
 
   const [deleteExistingAudio, setDeleteExistingAudio] = useState(false);
   const [newAudioBlob, setNewAudioBlob] = useState<Blob | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedCategoryId = watch('category_id');
-  const isKeyboardCategory = categories.find(c => c.id === selectedCategoryId)?.slug === 'keyboard';
+  const isKeyboardCategory =
+    categories.find((c) => c.id === selectedCategoryId)?.slug === 'keyboard';
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -116,23 +116,22 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   const onSubmit = async (data: PostFormInput) => {
     try {
       const remainingExistingIds = imageItems
-        .filter(item => item.type === 'existing')
-        .map(item => item.id);
-      
+        .filter((item) => item.type === 'existing')
+        .map((item) => item.id);
+
       const newImageFiles = imageItems
-        .filter(item => item.type === 'new')
-        .map(item => item.file as File);
+        .filter((item) => item.type === 'new')
+        .map((item) => item.file as File);
 
       await updatePost(
         post.id,
         data,
         { deletedImageIds, remainingImageIds: remainingExistingIds, newImageFiles },
-        { deleteExistingAudio, newAudioFile: newAudioBlob }
+        { deleteExistingAudio, newAudioFile: newAudioBlob },
       );
 
       toast.success('수정 내용을 저장했어요.');
       router.replace(`/posts/${post.id}`);
-      router.refresh();
 
       // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
       await new Promise(() => {});
@@ -148,17 +147,35 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
         <Field>
           <FieldLabel>사진 ({imageItems.length}/10)</FieldLabel>
           <FieldContent>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
               <div className="grid grid-cols-3 gap-2">
-                <SortableContext items={imageItems.map(item => item.id)} strategy={rectSortingStrategy}>
+                <SortableContext
+                  items={imageItems.map((item) => item.id)}
+                  strategy={rectSortingStrategy}
+                >
                   {imageItems.map((item, index) => (
-                    <SortableImageItem key={item.id} item={item} index={index} onRemove={removeImage} />
+                    <SortableImageItem
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      onRemove={removeImage}
+                    />
                   ))}
                 </SortableContext>
                 {imageItems.length < 10 && (
-                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted transition-colors hover:border-primary bg-neutral-50">
+                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-neutral-50 transition-colors hover:border-primary">
                     <ImageIcon className="size-8 text-muted-foreground" />
-                    <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
                   </label>
                 )}
               </div>
@@ -182,7 +199,9 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -198,26 +217,26 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
             <FieldContent>
               <div className="flex flex-col gap-3">
                 {post.audio_url && !deleteExistingAudio && !newAudioBlob && (
-                  <div className="bg-neutral-50 rounded-xl p-3 border flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase">
+                  <div className="flex items-center justify-between rounded-xl border bg-neutral-50 p-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase">
                       <Mic className="size-3" /> Existing ASMR
                     </div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setDeleteExistingAudio(true)}
-                      className="text-[10px] text-red-500 font-medium hover:underline"
+                      className="text-[10px] font-medium text-red-500 hover:underline"
                     >
                       삭제하기
                     </button>
                   </div>
                 )}
-                
+
                 {(deleteExistingAudio || !post.audio_url || newAudioBlob) && (
                   <VoiceRecorder onRecordingComplete={setNewAudioBlob} />
                 )}
-                
+
                 {deleteExistingAudio && !newAudioBlob && (
-                  <p className="text-[10px] text-amber-600 font-medium px-1">
+                  <p className="px-1 text-[10px] font-medium text-amber-600">
                     * 기존 녹음이 삭제될 예정이에요. 새로 녹음할 수도 있어요.
                   </p>
                 )}
@@ -229,15 +248,38 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
         {/* Description */}
         <Field>
           <FieldLabel>자랑거리 설명</FieldLabel>
-          <Textarea {...register('description')} placeholder="아이템에 대해 들려주세요" className="min-h-[180px] resize-none text-sm" />
+          <Textarea
+            {...register('description')}
+            placeholder="아이템에 대해 들려주세요"
+            className="min-h-[180px] resize-none text-sm"
+          />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
       </FieldGroup>
 
-      <div className="flex gap-3 mt-4">
-        <Button type="button" variant="outline" size="lg" className="flex-1 h-12" onClick={() => router.back()}>취소</Button>
-        <Button type="submit" size="lg" disabled={isSubmitting} className="flex-1 h-12 text-base font-bold shadow-lg shadow-primary/20">
-          {isSubmitting ? <><Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> 저장 중...</> : '수정완료'}
+      <div className="mt-4 flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="h-12 flex-1"
+          onClick={() => router.back()}
+        >
+          취소
+        </Button>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={isSubmitting}
+          className="h-12 flex-1 text-base font-bold shadow-lg shadow-primary/20"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> 저장 중...
+            </>
+          ) : (
+            '수정완료'
+          )}
         </Button>
       </div>
     </form>

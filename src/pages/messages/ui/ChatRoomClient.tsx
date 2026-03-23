@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -41,13 +41,6 @@ export const ChatRoomClient = ({
   // 3. 스마트 스크롤 관리 (Pages/Lib)
   const { scrollRef, isReady } = useChatScroll(messages, authUser?.id);
 
-  // ChatRoomClient.tsx
-  useEffect(() => {
-    return () => {
-      router.refresh(); // 채팅방에서 나갈 때 항상 실행
-    };
-  }, [router]);
-
   const onSendMessage = (content: string) => {
     if (authUser) handleSend(content, authUser.id);
   };
@@ -56,7 +49,12 @@ export const ChatRoomClient = ({
     <div className="fixed inset-0 z-[60] mx-auto flex max-w-[420px] flex-col overflow-hidden bg-neutral-50 shadow-2xl">
       <header className="flex h-14 w-full shrink-0 items-center gap-2 border-b bg-white px-4 shadow-sm">
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            router.back();
+            setTimeout(() => {
+              router.refresh();
+            }, 100);
+          }}
           className="p-1 text-neutral-600 transition-colors hover:text-neutral-900"
         >
           <ChevronLeft className="size-6" />

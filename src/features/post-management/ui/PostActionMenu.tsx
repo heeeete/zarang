@@ -49,9 +49,13 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
         throw new Error(result.error || '삭제하지 못했어요.');
       }
 
-      toast.success('게시글을 삭제했어요.');
       router.back();
-      router.refresh();
+
+      // back()이 완료된 후 refresh() 실행
+      setTimeout(() => {
+        toast.success('게시글을 삭제했어요.');
+        router.refresh();
+      }, 100);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '삭제하는 중에 문제가 생겼어요.');
       setIsDeleting(false);
