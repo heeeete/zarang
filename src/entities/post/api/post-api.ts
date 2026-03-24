@@ -4,7 +4,7 @@ import { Post, RawPostResponse, DetailPost, RawHomePostResponse } from '../model
 import { PostFormInput } from '../model/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { createClient as createBrowserClient } from '@/src/shared/lib/supabase/client';
-import { getImageMetadata } from '@/src/shared/lib/image';
+import { processImage } from '@/src/shared/lib/image';
 import { uploadFile } from '@/src/shared/lib/supabase/storage';
 
 /**
@@ -71,7 +71,7 @@ export const fetchHomePosts = async (supabase: SupabaseClient, options: { from: 
 };
 
 /**
- * 게시글 작성 (클라이언트 직접 업로드)
+ * 게시글 작성 (클라이언트 가공 후 직접 업로드)
  */
 export const createPost = async (data: PostFormInput, imageFiles: File[], audioFile: Blob | File | null) => {
   const supabase = createBrowserClient();
@@ -82,10 +82,12 @@ export const createPost = async (data: PostFormInput, imageFiles: File[], audioF
   const uploadedImages = [];
 
   for (let i = 0; i < imageFiles.length; i++) {
-    const file = imageFiles[i];
-    const { width, height } = await getImageMetadata(file);
-    const path = `post-images/${user.id}/${postId}/${i}_${uuidv4()}.${file.name.split('.').pop() || 'jpg'}`;
-    const publicUrl = await uploadFile(supabase, 'post-images', path, file);
+    // 이미지 회전 교정 및 최적화 가공
+    const { blob, width, height } = await processImage(imageFiles[i]);
+    
+    // 스토리지 업로드 (.jpg로 통일)
+    const path = `post-images/${user.id}/${postId}/${i}_${uuidv4()}.jpg`;
+    const publicUrl = await uploadFile(supabase, 'post-images', path, blob);
     
     uploadedImages.push({ image_url: publicUrl, storage_path: path, width, height, sort_order: i });
   }
@@ -115,7 +117,7 @@ export const createPost = async (data: PostFormInput, imageFiles: File[], audioF
 };
 
 /**
- * 게시글 수정 (클라이언트 직접 업로드)
+ * 게시글 수정 (클라이언트 가공 후 직접 업로드)
  */
 export const updatePost = async (
   postId: string,
@@ -129,9 +131,13 @@ export const updatePost = async (
 
   const uploadedNewImages = [];
   for (const file of imageOptions.newImageFiles) {
-    const { width, height } = await getImageMetadata(file);
-    const path = `post-images/${user.id}/${postId}/${Date.now()}_${uuidv4()}.${file.name.split('.').pop() || 'jpg'}`;
-    const publicUrl = await uploadFile(supabase, 'post-images', path, file);
+    // 이미지 회전 교정 및 최적화 가공
+    const { blob, width, height } = await processImage(file);
+    
+    // 스토리지 업로드 (.jpg로 통일)
+    const path = `post-images/${user.id}/${postId}/${Date.now()}_${uuidv4()}.jpg`;
+    const publicUrl = await uploadFile(supabase, 'post-images', path, blob);
+    
     uploadedNewImages.push({ image_url: publicUrl, storage_path: path, width, height });
   }
 
