@@ -20,7 +20,7 @@ export const BottomNav = () => {
   const mainNavPages = ['/', '/explore', '/write', '/messages', '/me'];
 
   // 현재 경로가 메인 네비게이션 페이지 중 하나인지 확인
-  const isMainPage = mainNavPages.includes(pathname || '');
+  const isMainPage = mainNavPages.includes(pathname || '/') || pathname?.startsWith('/users/');
 
   // 메인 페이지가 아니거나 채팅방인 경우 렌더링하지 않음
   if (!isMainPage || (pathname?.startsWith('/messages/') && pathname !== '/messages')) {

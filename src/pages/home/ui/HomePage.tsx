@@ -23,9 +23,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <main className="flex-1">
-        <HomeFeed initialPosts={initialPosts} isAuthenticated={!!user} />
-      </main>
+      <HomeFeed initialPosts={initialPosts} isAuthenticated={!!user} />
     </div>
   );
 }

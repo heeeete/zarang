@@ -17,8 +17,10 @@ interface PostEditPageProps {
 export const PostEditPage = async ({ params }: PostEditPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/login');
@@ -32,10 +34,7 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
       .eq('id', id)
       .order('sort_order', { foreignTable: 'post_images', ascending: true })
       .single(),
-    supabase
-      .from('categories')
-      .select('id, slug, label')
-      .order('sort_order', { ascending: true })
+    supabase.from('categories').select('id, slug, label').order('sort_order', { ascending: true }),
   ]);
 
   const post = postResponse.data;
@@ -54,9 +53,7 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
     <div className="flex min-h-full flex-col bg-white">
       <SubHeader title="게시글 수정" />
 
-      <main className="flex-1 overflow-y-auto pb-10">
-        <PostEditForm post={post} categories={(categories as Category[]) || []} />
-      </main>
+      <PostEditForm post={post} categories={(categories as Category[]) || []} />
     </div>
   );
 };
