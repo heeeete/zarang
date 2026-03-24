@@ -11,14 +11,9 @@ interface SortableImageItemProps {
 }
 
 export const SortableImageItem = ({ item, index, onRemove }: SortableImageItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,14 +33,14 @@ export const SortableImageItem = ({ item, index, onRemove }: SortableImageItemPr
         alt={`preview-${index}`}
         fill
         className="object-cover transition-transform duration-500 hover:scale-105"
-        unoptimized
+        sizes="200px"
       />
-      
+
       {/* Drag Handle */}
-      <div 
-        {...attributes} 
+      <div
+        {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 z-10 rounded-md bg-black/30 p-1 text-white cursor-grab active:cursor-grabbing"
+        className="absolute top-1 left-1 z-10 cursor-grab rounded-md bg-black/30 p-1 text-white active:cursor-grabbing"
       >
         <GripVertical className="size-4" />
       </div>
@@ -53,13 +48,13 @@ export const SortableImageItem = ({ item, index, onRemove }: SortableImageItemPr
       <button
         type="button"
         onClick={() => onRemove(item.id)}
-        className="absolute top-1 right-1 z-10 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+        className="absolute top-1 right-1 z-10 rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
       >
         <XCircleIcon className="size-5" />
       </button>
-      
+
       {index === 0 && (
-        <div className="absolute right-0 bottom-0 left-0 z-10 bg-primary/80 py-0.5 text-center text-[10px] text-white font-medium">
+        <div className="absolute right-0 bottom-0 left-0 z-10 bg-primary/80 py-0.5 text-center text-[10px] font-medium text-white">
           대표 사진
         </div>
       )}

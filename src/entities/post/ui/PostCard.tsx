@@ -64,6 +64,7 @@ export const PostCard = ({ post, priority = false }: PostCardProps) => {
                 alt={post.author.username}
                 fill
                 className="object-cover"
+                sizes="40px"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-neutral-300">
