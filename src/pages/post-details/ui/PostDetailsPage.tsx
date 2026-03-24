@@ -56,7 +56,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-white pb-[49px]">
+    <div className="flex min-h-full flex-col bg-white pb-[env(safe-area-inset-bottom)]">
       {/* 상단 헤더: 뒤로가기 버튼만 표시 */}
       <SubHeader
         rightElement={user?.id === post.author_id ? <PostActionMenu postId={id} /> : null}
