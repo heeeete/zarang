@@ -176,6 +176,83 @@ export const createPost = async (
 };
 
 /**
+ * 게시글을 수정합니다 (클라이언트 직접 업로드 방식).
+ */
+export const updatePost = async (
+  postId: string,
+  data: PostFormInput,
+  imageOptions: {
+    deletedImageIds: string[];
+    remainingImageIds: string[];
+    newImageFiles: File[];
+  },
+  audioOptions: {
+    deleteExistingAudio: boolean;
+    newAudioFile: Blob | File | null;
+  },
+) => {
+  const supabase = createBrowserClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('인증이 필요합니다.');
+
+  const uploadedNewImages = [];
+
+  // 1. 새 이미지 가공 및 직접 업로드
+  for (let i = 0; i < imageOptions.newImageFiles.length; i++) {
+    const file = imageOptions.newImageFiles[i];
+    const { blob, width, height } = await processImage(file);
+    
+    // 순서는 기존 이미지들 뒤로 붙도록 처리 (정확한 순서는 서버에서 re-order)
+    const { publicUrl, storagePath } = await uploadPostImage(supabase, user.id, postId, 100 + i, blob);
+    
+    uploadedNewImages.push({
+      image_url: publicUrl,
+      storage_path: storagePath,
+      width,
+      height,
+    });
+  }
+
+  // 2. 새 오디오 업로드 (있는 경우)
+  let newAudioUrl = null;
+  let newAudioStoragePath = null;
+  if (audioOptions.newAudioFile) {
+    const fileExt = (audioOptions.newAudioFile as File).name?.split('.').pop() || 'webm';
+    const fileName = `audio_${Date.now()}_${uuidv4()}.${fileExt}`;
+    const path = `post-audios/${user.id}/${postId}/${fileName}`;
+    
+    const { publicUrl, storagePath } = await uploadToStorage(supabase, 'post-images', path, audioOptions.newAudioFile);
+    newAudioUrl = publicUrl;
+    newAudioStoragePath = storagePath;
+  }
+
+  // 3. 서버 API 호출 (DB 정보 동기화 및 기존 파일 삭제 요청)
+  const response = await fetch(`/api/posts/${postId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      description: data.description,
+      category_id: data.category_id,
+      deletedImageIds: imageOptions.deletedImageIds,
+      remainingImageIds: imageOptions.remainingImageIds,
+      newImages: uploadedNewImages,
+      deleteAudio: audioOptions.deleteExistingAudio,
+      newAudio: newAudioUrl ? {
+        audio_url: newAudioUrl,
+        audio_storage_path: newAudioStoragePath,
+      } : null,
+    }),
+  });
+
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.error || '수정 내용을 저장하지 못했어요.');
+  }
+
+  return response.json();
+};
+
+/**
  * 게시글 상세 정보를 조회합니다 (캐싱 적용).
  */
 export const getPostDetail = async (supabase: SupabaseClient, id: string) => {
