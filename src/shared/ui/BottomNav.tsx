@@ -14,9 +14,16 @@ export const BottomNav = () => {
   const router = useRouter();
   const { user } = useAuth();
 
-  // 모든 훅 호출 이후에 렌더링 여부를 결정합니다 (Rules of Hooks 준수).
-  const isChatRoom = pathname?.startsWith('/messages/') && pathname !== '/messages';
-  if (isChatRoom) return null;
+  // 메인 네비게이션 페이지 목록
+  const mainNavPages = ['/', '/explore', '/write', '/messages', '/me'];
+
+  // 현재 경로가 메인 네비게이션 페이지 중 하나인지 확인
+  const isMainPage = mainNavPages.includes(pathname || '');
+
+  // 메인 페이지가 아니거나 채팅방인 경우 렌더링하지 않음
+  if (!isMainPage || (pathname?.startsWith('/messages/') && pathname !== '/messages')) {
+    return null;
+  }
 
   // 로그인되지 않은 상태에서 보안이 필요한 페이지 클릭 시 가로채기
   const handleProtectedClick = (e: React.MouseEvent, href: string) => {
@@ -52,10 +59,10 @@ export const BottomNav = () => {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto h-16 w-full max-w-[420px] border-t bg-white px-3"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[420px] border-t bg-white px-3 pb-[env(safe-area-inset-bottom)]"
       style={{ right: 'var(--removed-body-scroll-bar-size, 0px)' }}
     >
-      <ul className="flex h-full items-center justify-between">
+      <ul className="flex h-16 items-center justify-between">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;

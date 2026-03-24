@@ -2,6 +2,9 @@
 
 import { Button } from '@/src/shared/ui/button';
 import { X } from 'lucide-react';
+import { Textarea } from '@/src/shared/ui/textarea';
+import { useAutoResizeTextarea } from '@/src/shared/lib/hooks/useAutoResizeTextarea';
+import { useIsMobile } from '@/src/shared/lib/hooks/useIsMobile';
 import { useCommentInput } from '../model/useCommentInput';
 
 interface CommentInputProps {
@@ -12,9 +15,7 @@ interface CommentInputProps {
  * 댓글 입력창 (View 전용 Component)
  * 비즈니스 로직은 useCommentInput 훅으로 위임합니다.
  */
-export const CommentInput = ({
-  postId,
-}: CommentInputProps) => {
+export const CommentInput = ({ postId }: CommentInputProps) => {
   const {
     content,
     setContent,
@@ -27,9 +28,20 @@ export const CommentInput = ({
     onCancelEdit,
   } = useCommentInput(postId);
 
+  const isMobile = useIsMobile();
+
+  useAutoResizeTextarea(inputRef, content, 116);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <div
-      className="fixed inset-x-0 bottom-16 z-50 mx-auto flex w-full max-w-[420px] flex-col gap-2 border-t bg-white p-2 px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+      className="pb-safe-offset-2 fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[420px] flex-col gap-2 border-t bg-white p-2 px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
       style={{ right: 'var(--removed-body-scroll-bar-size, 0px)' }}
     >
       {/* 상태 표시줄 (답글 또는 수정) */}
@@ -54,8 +66,8 @@ export const CommentInput = ({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <input
+      <div className="flex items-center gap-2 pb-[env(safe-area-inset-bottom)]">
+        <Textarea
           ref={inputRef}
           placeholder={
             isEditing
@@ -66,14 +78,10 @@ export const CommentInput = ({
           }
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          onKeyDown={handleKeyDown}
           disabled={isSubmitting}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-          className="flex-1 rounded-full bg-muted px-4 py-2 text-[16px] outline-none disabled:opacity-50"
+          className="max-h-[116px] min-h-[40px] flex-1 resize-none rounded-[20px] bg-muted px-4 py-2 text-[16px] whitespace-pre-wrap outline-none disabled:opacity-50"
+          rows={1}
         />
         <Button
           size="sm"

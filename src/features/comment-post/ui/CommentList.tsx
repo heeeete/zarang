@@ -15,7 +15,7 @@ import { CommentActionMenu } from './CommentActionMenu';
 const HighlightMention = ({ content }: { content: string }) => {
   const parts = content.split(/(@\S+)/g);
   return (
-    <div className="text-[13px] leading-relaxed break-words text-neutral-800">
+    <div className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-neutral-800">
       {parts.map((part, i) =>
         part.startsWith('@') ? (
           <span key={i} className="mr-1 font-bold text-blue-600">
