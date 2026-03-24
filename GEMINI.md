@@ -1,93 +1,100 @@
-# GEMINI.md - Project Context & Instructions
+# GEMINI.md
 
-## Project Overview
+## Project
 
-**Project Name:** ZARANG
-**Description:** An image-centric community platform for hobbyists to showcase and share items like keyboards, mice, figures, and desk setups.
-**Main Technologies:**
-- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS v4, shadcn/ui.
-- **Backend:** Supabase (Auth, PostgreSQL Database, Storage).
-- **Validation:** `zod`, `react-hook-form`.
-- **Architecture:** Feature-Sliced Design (FSD).
-
-## Core Features (MVP)
-
-1.  **Authentication:** Social login via Google, Kakao, and Naver (Supabase Auth).
-2.  **Home Feed:** A feed displaying the latest posts with 16:9 thumbnail previews.
-3.  **Post Creation:** Multi-image uploads (up to 10), titles, descriptions, and category selection.
-4.  **Post Details:** Image carousel, post body, like button, and comment section.
-5.  **Interactions:** Likes and comments.
-6.  **My Page:** Profile overview and list of user-created posts.
-
-## Architecture & Conventions
-
-### Feature-Sliced Design (FSD)
-
-The project follows the FSD structure within the `src/` directory. The root `app/` directory serves as a bridge, re-exporting from the `src/` layers.
-
-- **`app/`**: Entry point and global configurations (re-exported from `src/app`).
-- **`pages/`**: Complete page components.
-- **`widgets/`**: Complex UI blocks composed of features.
-- **`features/`**: User actions (e.g., `like-post`, `create-post`).
-- **`entities/`**: Business logic and data models (e.g., `post`, `user`).
-- **`shared/`**: Generic UI components (shadcn/ui), utilities, and API clients.
-
-### UI/UX Standards
-
-- **Mobile-First:** Designed primarily for mobile users.
-- **Layout:** Centered content with a fixed maximum width of **420px**.
-- **External Background:** Light grey (`bg-neutral-100`).
-- **Internal Background:** White.
-- **Components:** Primarily uses `shadcn/ui`.
-
-### Technical Guidelines
-
-- **Next.js:** Prefer Server Components for data fetching.
-- **Supabase:**
-    - Use `@supabase/ssr` for client/server initialization.
-    - Enable Row Level Security (RLS) on all PostgreSQL tables.
-    - Route handlers are used for image uploads and sensitive operations.
-- **Styling:** Use Tailwind CSS v4 utility classes.
-- **Validation:** Always use `zod` schemas for form and API input validation.
-
-## Building and Running
-
-### Prerequisites
-- `pnpm` (v10.27.0 recommended)
-
-### Development
-```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
-```
-
-### Production
-```bash
-# Build the project
-pnpm build
-
-# Start production server
-pnpm start
-```
-
-### Quality Control
-```bash
-# Run linting
-pnpm lint
-```
-
-## Environment Variables
-
-Ensure the following variables are set in `.env.local`:
-
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-```
+- Next.js (App Router) + TypeScript
+- Supabase (Auth, Postgres, Storage)
+- Tailwind CSS v4 + shadcn/ui
+- FSD Architecture
 
 ---
-*Note: This file is used as context for Gemini CLI. Keep it updated with major architectural changes.*
+
+## Core Rules
+
+- RSC(React Server Component) 우선
+- 불필요한 "use client" 금지
+- 기존 구조(FSD) 유지
+- 요청 범위 밖 리팩토링 금지
+- 타입 안정성 유지
+- any 사용 금지
+- schema 변경은 migrations 기준
+- 사용자 요청 없이는 UI/스타일/레이아웃 변경 절대 금지
+- Client Component로 변경하지 않고 해결 방법을 먼저 검토
+- 모르면 추측하지 말고 기존 코드 기준으로 판단
+- 수정 범위 밖 파일 변경 금지
+- 코드 우선 제시, 설명은 최소화
+
+---
+
+## Supabase Rules
+
+- 모든 테이블 RLS 활성화
+- service_role key는 클라이언트 사용 금지
+- 민감 작업은 Route Handler 또는 Server에서 처리
+- DB 변경 시 migration 기준으로 제안
+- RLS 정책 우회 방식 금지
+- supabase db push는 항상 zarang_dev에만 수행
+- production(zarang_pro) push는 금지 (사용자가 직접 수행)
+
+## Sync Rules
+
+- Supabase 스키마 변경 시 docs/gemini/supabase.md 반드시 함께 수정
+- docs와 실제 DB 구조가 불일치하면 docs를 기준으로 판단하지 않는다
+- DB 변경 작업에는 문서 업데이트를 포함한다
+
+---
+
+## Structure (FSD)
+
+- app: entry (src/app re-export)
+- pages: 페이지 단위
+- widgets: UI 블록
+- features: 사용자 액션
+- entities: 도메인/데이터
+- shared: 공통 UI/유틸/API
+
+---
+
+## UI Rules
+
+- Mobile-first
+- max-width: 420px
+- 외부: bg-neutral-100
+- 내부: white
+- shadcn/ui 사용
+
+---
+
+## Validation
+
+- 모든 입력은 zod로 검증
+
+---
+
+## Environment
+
+- Windows PowerShell 환경
+- Linux/bash 명령어 사용 금지
+- PowerShell 기준 명령어 사용
+
+---
+
+## Env Vars
+
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+
+## Context References
+
+- ./docs/gemini/project.md
+- ./docs/gemini/supabase.md
+- ./docs/gemini/rules.md
+
+작업 전 위 문서를 기준으로 판단한다.
+
+우선순위:
+
+1. rules.md
+2. supabase.md
+3. project.md
