@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/app/providers/AuthProvider';
 import { useMessageStore } from '@/src/entities/message/model/messageStore';
-import { fetchChatRooms } from '@/src/entities/chat/api/chat-api';
 
 export function NotificationListener() {
   const router = useRouter();

@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
+    interface ImageInput {
+      image_url: string;
+      storage_path: string;
+      width: number;
+      height: number;
+      sort_order: number;
+    }
+
     // 1. Create Post
     const { error: postError } = await adminSupabase
       .from('posts')
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Insert Post Images
     // 클라이언트에서 이미 업로드하고 보낸 정보를 DB에 등록합니다.
-    const imageRecords = images.map((img: any) => ({
+    const imageRecords = images.map((img: ImageInput) => ({
       post_id: postId,
       image_url: img.image_url,
       storage_path: img.storage_path,
