@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Compass, PlusSquare, User, MessageSquare } from 'lucide-react';
 import { cn } from '@/src/shared/lib/utils';
 import { useAuth } from '@/src/app/providers/AuthProvider';
+import { useMessageStore } from '@/src/entities/message/model/messageStore';
 
 /**
  * 하단 내비게이션 바 컴포넌트입니다.
@@ -13,6 +14,7 @@ export const BottomNav = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const hasUnread = useMessageStore((state) => state.hasUnread);
 
   // 메인 네비게이션 페이지 목록
   const mainNavPages = ['/', '/explore', '/write', '/messages', '/me'];
@@ -72,11 +74,14 @@ export const BottomNav = () => {
               <Link
                 href={item.href}
                 onClick={item.onClick}
-                className={cn('flex flex-col items-center gap-1 p-4 transition-colors')}
+                className={cn('relative flex flex-col items-center gap-1 p-4 transition-colors')}
               >
                 <Icon
                   className={cn('h-6 w-6', isActive ? 'text-primary' : 'text-muted-foreground')}
                 />
+                {item.href === '/messages' && hasUnread && (
+                  <span className="absolute right-3 bottom-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white" />
+                )}
                 <span className="sr-only text-[10px] font-medium">{item.label}</span>
               </Link>
             </li>
