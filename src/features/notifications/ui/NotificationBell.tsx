@@ -40,7 +40,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (userId) {
-      // 린트 에러 방지를 위해 비동기적으로 호출하거나 
+      // 린트 에러 방지를 위해 비동기적으로 호출하거나
       // 마운트 직후 한 번 실행되도록 보장합니다.
       const initLoad = async () => {
         await loadNotifications(userId);
@@ -110,7 +110,7 @@ export function NotificationBell() {
           <Button id="notification-bell" variant="ghost" size="icon" className="relative h-9 w-9" />
         }
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="size-6" />
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white" />
         )}
