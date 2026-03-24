@@ -143,8 +143,11 @@ export const createPost = async (
     formData.append('audio', audioFile, fileName);
   }
 
-  imageFiles.forEach((file) => {
-    formData.append('images', file);
+  imageFiles.forEach((file, index) => {
+    // 파일 이름을 안전한 형식으로 변경하여 append 합니다. (특히 Safari 호환성 및 특수문자 대응)
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const safeName = `image_${index}_${Date.now()}.${fileExt}`;
+    formData.append('images', file, safeName);
   });
 
   const response = await fetch('/api/posts', {
@@ -182,7 +185,11 @@ export const updatePost = async (
 
   formData.append('deletedImageIds', JSON.stringify(imageOptions.deletedImageIds));
   formData.append('remainingImageIds', JSON.stringify(imageOptions.remainingImageIds));
-  imageOptions.newImageFiles.forEach((file) => formData.append('newImages', file));
+  imageOptions.newImageFiles.forEach((file, index) => {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const safeName = `image_${index}_${Date.now()}.${fileExt}`;
+    formData.append('newImages', file, safeName);
+  });
 
   formData.append('deleteAudio', audioOptions.deleteExistingAudio.toString());
   if (audioOptions.newAudioFile) {
