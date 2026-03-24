@@ -41,7 +41,10 @@ export const CommentActionMenu = ({ commentId, content, isOwner }: CommentAction
       <DrawerTrigger className="rounded-full p-1 transition-colors outline-none hover:bg-neutral-100">
         <EllipsisIcon className="size-4 text-neutral-400" />
       </DrawerTrigger>
-      <DrawerContent className="mx-auto max-w-[420px] rounded-t-2xl pb-5">
+      <DrawerContent 
+        className="mx-auto max-w-[420px] rounded-t-2xl pb-5"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <DrawerHeader className="sr-only">
           <DrawerTitle>댓글 관리</DrawerTitle>
         </DrawerHeader>
