@@ -31,7 +31,7 @@ export const ProfilePostCard = ({ post, priority = false }: ProfilePostCardProps
               alt="자랑거리 이미지"
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 420px) 33vw, 140px"
+              sizes="140px"
               priority={priority}
             />
 
