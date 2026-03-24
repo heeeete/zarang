@@ -5,7 +5,7 @@ import { RowsPhotoAlbum } from 'react-photo-album';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import Counter from 'yet-another-react-lightbox/plugins/counter';
-
+import Image from 'next/image';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/counter.css';
 import 'react-photo-album/rows.css';
@@ -43,6 +43,19 @@ export const PostImageGallery = ({ images, postTitle }: PostImageGalleryProps) =
         onClick={({ index }) => setIndex(index)}
         rowConstraints={{
           maxPhotos: images.length === 1 ? 1 : 2,
+        }}
+        render={{
+          image: ({ alt, style, ...restProps }, { photo, width, height }) => (
+            <Image
+              {...restProps}
+              src={photo.src}
+              alt={alt ?? postTitle}
+              width={width}
+              height={height}
+              style={{ ...style, objectFit: 'cover' }}
+              sizes="388px"
+            />
+          ),
         }}
       />
 

@@ -77,7 +77,10 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
         formData.append('bio', data.bio || '');
       }
       if (avatarFile) {
-        formData.append('avatar', avatarFile);
+        // 파일 이름을 안전한 형식으로 변경하여 append 합니다. (특히 Safari 호환성 및 특수문자 대응)
+        const fileExt = avatarFile.name.split('.').pop() || 'jpg';
+        const safeName = `avatar_${Date.now()}.${fileExt}`;
+        formData.append('avatar', avatarFile, safeName);
       }
 
       const response = await fetch('/api/profile', {
