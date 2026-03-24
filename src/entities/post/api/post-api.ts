@@ -156,11 +156,35 @@ export const createPost = async (
   });
 
   if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.error || '게시글을 작성하지 못했어요.');
+    const contentType = response.headers.get('content-type');
+    let errorMessage = `에러 발생 (Status: ${response.status})`;
+
+    try {
+      if (contentType?.includes('application/json')) {
+        const result = await response.json();
+        errorMessage = result.error || errorMessage;
+      } else {
+        // JSON이 아닌 경우 (Vercel 413 에러 등 HTML 응답)
+        const text = await response.text();
+        if (response.status === 413) {
+          errorMessage = '사진 용량이 너무 큽니다. (Vercel 4.5MB 제한)';
+        } else {
+          // HTML 응답인 경우 에러 메시지 식별을 위해 앞부분 100자만 추출
+          errorMessage = `서버 응답(비-JSON): ${text.slice(0, 100)}...`;
+        }
+      }
+    } catch (e) {
+      errorMessage = `응답 처리 중 오류: ${e instanceof Error ? e.message : '알 수 없는 에러'}`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
-  return response.json() as Promise<{ id: string }>;
+  try {
+    return await response.json() as { id: string };
+  } catch (e) {
+    throw new Error('응답 파싱 실패: 서버에서 올바른 JSON을 보내지 않았습니다.');
+  }
 };
 
 /**
