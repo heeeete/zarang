@@ -13,7 +13,7 @@ export const useCommentInput = (postId: string) => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const onCancelReply = () => setReplyingTo(null);
   const onCancelEdit = () => setEditingComment(null);

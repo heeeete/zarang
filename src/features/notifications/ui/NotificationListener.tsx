@@ -5,6 +5,8 @@ import { createClient } from '@/src/shared/lib/supabase/client';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/app/providers/AuthProvider';
+import { useMessageStore } from '@/src/entities/message/model/messageStore';
+import { fetchChatRooms } from '@/src/entities/chat/api/chat-api';
 
 export function NotificationListener() {
   const router = useRouter();
@@ -20,6 +22,10 @@ export function NotificationListener() {
     }
 
     const supabase = createClient();
+
+    // 초기 안 읽은 메시지 상태 확인
+    const refreshUnread = useMessageStore.getState().refreshUnreadStatus;
+    refreshUnread(userId);
 
     // 1. 기존 알림 구독 (댓글 등)
     const notificationChannel = supabase
@@ -79,6 +85,9 @@ export function NotificationListener() {
             const isCurrentlyInThisRoom = window.location.pathname === `/messages/${newMessage.room_id}`;
             
             if (!isCurrentlyInThisRoom) {
+              // 전역 상태 업데이트 (안 읽은 메시지 있음)
+              useMessageStore.getState().setHasUnread(true);
+
               const { data: sender } = await supabase
                 .from('profiles')
                 .select('username')
@@ -91,6 +100,19 @@ export function NotificationListener() {
               );
             }
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          // 내 읽음 상태가 변경되면 전체 안 읽은 상태 새로고침
+          useMessageStore.getState().refreshUnreadStatus(userId);
         }
       )
       .subscribe();
