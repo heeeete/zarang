@@ -36,8 +36,8 @@ export const ProfilePostGrid = ({ posts, loading }: ProfilePostGridProps) => {
 
   return (
     <div>
-      <ResponsiveMasonry columnsCountBreakPoints={{ 300: 3, 600: 3 }}>
-        <Masonry gutter="2px">
+      <ResponsiveMasonry columnsCountBreakPoints={{ 0: 3 }} gutterBreakPoints={{ 0: '1px' }}>
+        <Masonry>
           {posts.map((post, index) => (
             <ProfilePostCard key={post.id} post={post} priority={index === 0} />
           ))}

@@ -50,7 +50,7 @@ export const PostCard = ({ post, priority = false }: PostCardProps) => {
       </Link>
 
       {/* 하단 정보 영역: 프로필 + 지표 */}
-      <div className="flex items-center justify-between px-0.5 py-2">
+      <div className="flex items-center justify-between p-2">
         {/* 프로필 정보 */}
         <Link
           href={`/users/${post.author_id}`}
