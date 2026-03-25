@@ -25,7 +25,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+  const start = performance.now();
+  console.log('[PERF:LAYOUT] Layout rendering started');
+
+  const result = (
     <html lang="ko" className={roboto.variable}>
       <body className="bg-neutral-100 font-sans antialiased">
         <AuthProvider>
@@ -42,4 +45,7 @@ export default function RootLayout({
       </body>
     </html>
   );
+
+  console.log(`[PERF:LAYOUT] Layout structure ready took ${(performance.now() - start).toFixed(2)}ms`);
+  return result;
 }
