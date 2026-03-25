@@ -1,6 +1,7 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { HomeFeed } from '@/src/widgets/home-feed/ui/HomeFeed';
 import { fetchHomePosts } from '@/src/entities/post/api/post-api';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 /**
  * 홈페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -9,21 +10,19 @@ import { fetchHomePosts } from '@/src/entities/post/api/post-api';
 export default async function HomePage() {
   const supabase = await createClient();
 
-  // 현재 유저 정보를 안전하게 가져옵니다.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 현재 유저 ID를 미들웨어 헤더에서 가져옵니다.
+  const userId = await getServerUserId();
 
   // 초기 12개의 추천 게시물 목록을 가져옵니다.
   const initialPosts = await fetchHomePosts(supabase, {
     from: 0,
     to: 11,
-    userId: user?.id,
+    userId: userId ?? undefined,
   });
 
   return (
     <div className="flex min-h-full flex-col">
-      <HomeFeed initialPosts={initialPosts} isAuthenticated={!!user} />
+      <HomeFeed initialPosts={initialPosts} isAuthenticated={!!userId} />
     </div>
   );
 }

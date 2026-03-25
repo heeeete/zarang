@@ -2,6 +2,7 @@ import { createClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PostCreateForm } from '@/src/features/post-creation/ui/PostCreateForm';
 import { Category } from '@/src/entities/post/model/schema';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 /**
  * 게시글 작성 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -10,11 +11,9 @@ import { Category } from '@/src/entities/post/model/schema';
 export const WritePage = async () => {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = await getServerUserId();
 
-  if (!user) {
+  if (!userId) {
     redirect('/login');
   }
 

@@ -111,7 +111,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .order('sort_order', { ascending: true })
       .limit(1)
       .maybeSingle();
-    const updateData: any = {
+
+    interface PostUpdateData {
+      description: string | null;
+      category_id: string;
+      thumbnail_url: string | null;
+      updated_at: string;
+      audio_url?: string | null;
+      audio_storage_path?: string | null;
+    }
+
+    const updateData: PostUpdateData = {
       description: description || null,
       category_id,
       thumbnail_url: firstImage?.image_url || null,

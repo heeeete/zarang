@@ -9,6 +9,7 @@ import { fetchPostsData } from '@/src/entities/post/api/post-api';
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
 import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
 import { MessageButton } from '@/src/features/chat/ui/MessageButton';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 interface UserPageProps {
   params: Promise<{
@@ -23,11 +24,10 @@ export const UserPage = async ({ params }: UserPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
+  // 현재 로그인한 사용자의 ID를 가져옵니다.
+  const currentUserId = await getServerUserId();
 
-  if (currentUser?.id === id) {
+  if (currentUserId === id) {
     redirect('/me');
   }
 
@@ -90,7 +90,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
             {/* 팔로워 리스트 시트 */}
             <ProfileListSheet
               userId={id}
-              currentUserId={currentUser?.id}
+              currentUserId={currentUserId ?? undefined}
               type="followers"
               trigger={
                 <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
@@ -105,7 +105,7 @@ export const UserPage = async ({ params }: UserPageProps) => {
             {/* 팔로잉 리스트 시트 */}
             <ProfileListSheet
               userId={id}
-              currentUserId={currentUser?.id}
+              currentUserId={currentUserId ?? undefined}
               type="following"
               trigger={
                 <div className="flex cursor-pointer flex-col items-center transition-opacity hover:opacity-70">
@@ -130,8 +130,8 @@ export const UserPage = async ({ params }: UserPageProps) => {
 
         {/* 하단: 액션 버튼 (팔로우) */}
         <div className="flex gap-2">
-          <ToggleFollowButton targetUserId={id} currentUserId={currentUser?.id} />
-          <MessageButton targetUserId={id} currentUserId={currentUser?.id} />
+          <ToggleFollowButton targetUserId={id} currentUserId={currentUserId ?? undefined} />
+          <MessageButton targetUserId={id} currentUserId={currentUserId ?? undefined} />
         </div>
       </div>
 

@@ -1,72 +1,85 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
-/**
- * 미들웨어에서 세션을 갱신하고 보호된 경로를 관리합니다.
- */
 export async function updateSession(request: NextRequest) {
-  const start = performance.now();
   const pathname = request.nextUrl.pathname;
-  console.log(`[PERF:PROXY] updateSession started for ${pathname}`);
 
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
-  // 1. 홈페이지(/)와 구경하기(/explore)는 인증이 필수가 아니므로 즉시 리턴하여 최적화합니다. ✨
   if (pathname === '/' || pathname.startsWith('/explore')) {
-    console.log(`[PERF:PROXY] updateSession skip (public path) took ${(performance.now() - start).toFixed(2)}ms`);
-    return response
+    return supabaseResponse;
   }
 
-  const supabaseStart = performance.now();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+
+          supabaseResponse = NextResponse.next({
             request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          });
+
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
+          });
         },
       },
-    }
-  )
+    },
+  );
 
-  // 2. 유저 정보 가져오기 (세션 갱신 포함)
-  const authStart = performance.now();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  console.log(`[PERF:PROXY] middleware auth.getUser took ${(performance.now() - authStart).toFixed(2)}ms`);
+  // createServerClient 와 getClaims 사이에는 다른 로직 넣지 않는 게 안전
+  const { data, error } = await supabase.auth.getClaims();
 
-  // 3. 보호된 경로 정의 (로그인이 반드시 필요한 페이지들)
+  const claims = data?.claims;
+  const userId = claims?.sub ?? null;
+
   const isProtectedRoute =
-    pathname.startsWith('/write') || 
-    pathname.startsWith('/me') || 
+    pathname.startsWith('/write') ||
+    pathname.startsWith('/me') ||
     pathname.startsWith('/messages') ||
-    pathname.startsWith('/users')
+    pathname.startsWith('/users');
 
-  // 4. 비로그인 유저가 보호된 경로에 접근할 경우 리다이렉트
-  // explore 페이지는 여기 포함되지 않으므로 비로그인 유저도 자유롭게 볼 수 있습니다. ✨
-  if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    url.searchParams.set('redirect', pathname)
-    console.log(`[PERF:PROXY] updateSession redirect took ${(performance.now() - start).toFixed(2)}ms`);
-    return NextResponse.redirect(url)
+  if (isProtectedRoute && !userId) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirect', pathname);
+
+    const redirectResponse = NextResponse.redirect(url);
+
+    // 중요: supabaseResponse에 들어있는 쿠키를 복사
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+
+    return redirectResponse;
   }
 
-  console.log(`[PERF:PROXY] updateSession finished took ${(performance.now() - start).toFixed(2)}ms`);
-  return response
+  if (userId) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', userId);
+
+    const finalResponse = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      finalResponse.cookies.set(cookie);
+    });
+
+    return finalResponse;
+  }
+
+  return supabaseResponse;
 }

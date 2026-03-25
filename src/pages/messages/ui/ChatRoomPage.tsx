@@ -3,6 +3,7 @@ import { fetchMessages, findExistingChatRoom } from '@/src/entities/chat/api/cha
 import { ChatRoomClient } from './ChatRoomClient';
 import { Message, ChatUserProfile } from '@/src/entities/chat/model/types';
 import { redirect } from 'next/navigation';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 interface ChatRoomPageProps {
   params: Promise<{ id: string }>;
@@ -17,9 +18,9 @@ export const ChatRoomPage = async ({ params, searchParams }: ChatRoomPageProps) 
   const { target: targetUserId } = await searchParams;
   
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const userId = await getServerUserId();
   
-  if (!user) {
+  if (!userId) {
     redirect('/login');
   }
 
@@ -30,7 +31,7 @@ export const ChatRoomPage = async ({ params, searchParams }: ChatRoomPageProps) 
 
   // 1. 기존 방이 있는지 확인 (리다이렉트 처리를 위해 try...catch 밖에서 수행할 데이터 준비)
   if (roomId === null && targetUserId) {
-    existingRoomId = await findExistingChatRoom(supabase, user.id, targetUserId);
+    existingRoomId = await findExistingChatRoom(supabase, userId, targetUserId);
   }
 
   // 2. 리다이렉트 결정 (try...catch 밖에서 수행)

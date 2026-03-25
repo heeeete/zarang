@@ -15,6 +15,7 @@ import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleF
 import { getPostDetail } from '@/src/entities/post/api/post-api';
 import { DetailPost } from '@/src/entities/post/model/types';
 import { CommentSection } from '@/src/features/comment-post/ui/CommentSection';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 interface PostDetailsPageProps {
   params: Promise<{
@@ -30,10 +31,8 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
 
-  // 로그인한 사용자의 정보를 가져옵니다 (좋아요 상태 확인용)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 로그인한 사용자의 ID를 미들웨어 헤더에서 가져옵니다 (좋아요 상태 확인용)
+  const userId = await getServerUserId();
 
   // 캐싱된 게시글 정보를 가져옵니다.
   const post = (await getPostDetail(supabase, id)) as DetailPost | null;
@@ -45,12 +44,12 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
 
   // 로그인된 경우 현재 사용자의 좋아요 여부를 확인합니다.
   let initialIsLiked = false;
-  if (user) {
+  if (userId) {
     const { data: likeData } = await supabase
       .from('post_likes')
       .select()
       .eq('post_id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
     initialIsLiked = !!likeData;
   }
@@ -59,7 +58,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
     <div className="flex min-h-full flex-col bg-white pb-[env(safe-area-inset-bottom)]">
       {/* 상단 헤더: 뒤로가기 버튼만 표시 */}
       <SubHeader
-        rightElement={user?.id === post.author_id ? <PostActionMenu postId={id} /> : null}
+        rightElement={userId === post.author_id ? <PostActionMenu postId={id} /> : null}
       />
 
       {/* 이미지 갤러리 (라이트박스 포함) */}
@@ -69,7 +68,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
       <div className="flex flex-col gap-5 p-5">
         <div className="flex items-center justify-between">
           <Link
-            href={post.author_id === user?.id ? '/me' : `/users/${post.author_id}`}
+            href={post.author_id === userId ? '/me' : `/users/${post.author_id}`}
             className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <div className="relative h-9 w-9 overflow-hidden rounded-full border bg-muted">
@@ -93,8 +92,8 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
               </span>
             </div>
           </Link>
-          {user?.id !== post.author_id ? (
-            <ToggleFollowButton targetUserId={post.author_id} currentUserId={user?.id} />
+          {userId !== post.author_id ? (
+            <ToggleFollowButton targetUserId={post.author_id} currentUserId={userId ?? undefined} />
           ) : (
             <Badge variant="secondary" className="px-2.5 py-0.5 font-medium italic opacity-50">
               내 게시물
