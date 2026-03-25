@@ -82,7 +82,7 @@ export const PostActionMenu = ({ postId }: PostActionMenuProps) => {
           }
         />
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem render={<Link href={`/posts/${postId}/edit`} />}>
+          <DropdownMenuItem render={<Link href={`/posts/${postId}/edit`} prefetch={false} />}>
             <Pencil className="mr-2 h-4 w-4" />
             <span>수정</span>
           </DropdownMenuItem>

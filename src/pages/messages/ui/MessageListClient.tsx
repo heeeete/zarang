@@ -78,6 +78,7 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
             key={room.id}
             href={`/messages/${room.id}`}
             className="flex items-center gap-4 border-b border-neutral-50 p-4 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
+            prefetch={false}
           >
             <div className="relative size-12 shrink-0 overflow-hidden rounded-full border bg-neutral-100">
               {otherUser?.avatar_url ? (
