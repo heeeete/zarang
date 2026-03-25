@@ -5,6 +5,10 @@ import { NextResponse, type NextRequest } from 'next/server'
  * 미들웨어에서 세션을 갱신하고 보호된 경로를 관리합니다.
  */
 export async function updateSession(request: NextRequest) {
+  const start = performance.now();
+  const pathname = request.nextUrl.pathname;
+  console.log(`[PERF:PROXY] updateSession started for ${pathname}`);
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -12,10 +16,12 @@ export async function updateSession(request: NextRequest) {
   })
 
   // 1. 홈페이지(/)와 구경하기(/explore)는 인증이 필수가 아니므로 즉시 리턴하여 최적화합니다. ✨
-  if (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/explore')) {
+  if (pathname === '/' || pathname.startsWith('/explore')) {
+    console.log(`[PERF:PROXY] updateSession skip (public path) took ${(performance.now() - start).toFixed(2)}ms`);
     return response
   }
 
+  const supabaseStart = performance.now();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -38,12 +44,13 @@ export async function updateSession(request: NextRequest) {
   )
 
   // 2. 유저 정보 가져오기 (세션 갱신 포함)
+  const authStart = performance.now();
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  console.log(`[PERF:PROXY] middleware auth.getUser took ${(performance.now() - authStart).toFixed(2)}ms`);
 
   // 3. 보호된 경로 정의 (로그인이 반드시 필요한 페이지들)
-  const pathname = request.nextUrl.pathname
   const isProtectedRoute =
     pathname.startsWith('/write') || 
     pathname.startsWith('/me') || 
@@ -56,8 +63,10 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
+    console.log(`[PERF:PROXY] updateSession redirect took ${(performance.now() - start).toFixed(2)}ms`);
     return NextResponse.redirect(url)
   }
 
+  console.log(`[PERF:PROXY] updateSession finished took ${(performance.now() - start).toFixed(2)}ms`);
   return response
 }

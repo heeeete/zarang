@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Compass, PlusSquare, User, MessageSquare } from 'lucide-react';
@@ -15,6 +16,11 @@ export const BottomNav = () => {
   const router = useRouter();
   const { user } = useAuth();
   const hasUnread = useMessageStore((state) => state.hasUnread);
+
+  // 경로 변경 감지 로깅
+  useEffect(() => {
+    console.log(`[PERF:CLIENT] Navigation finished. Current path: ${pathname}`);
+  }, [pathname]);
 
   // 메인 네비게이션 페이지 목록
   const mainNavPages = ['/', '/explore', '/write', '/messages', '/me'];
@@ -37,25 +43,44 @@ export const BottomNav = () => {
   };
 
   const navItems = [
-    { href: '/', icon: Home, label: '홈' },
-    { href: '/explore', icon: Compass, label: '구경하기' },
+    { 
+      href: '/', 
+      icon: Home, 
+      label: '홈',
+      onClick: () => console.log('[PERF:CLIENT] Navigation started to /')
+    },
+    { 
+      href: '/explore', 
+      icon: Compass, 
+      label: '구경하기',
+      onClick: () => console.log('[PERF:CLIENT] Navigation started to /explore')
+    },
     {
       href: '/write',
       icon: PlusSquare,
       label: '자랑하기',
-      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/write'),
+      onClick: (e: React.MouseEvent) => {
+        console.log('[PERF:CLIENT] Navigation started to /write');
+        handleProtectedClick(e, '/write');
+      },
     },
     {
       href: '/messages',
       icon: MessageSquare,
       label: '메시지',
-      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/messages'),
+      onClick: (e: React.MouseEvent) => {
+        console.log('[PERF:CLIENT] Navigation started to /messages');
+        handleProtectedClick(e, '/messages');
+      },
     },
     {
       href: '/me',
       icon: User,
       label: '마이',
-      onClick: (e: React.MouseEvent) => handleProtectedClick(e, '/me'),
+      onClick: (e: React.MouseEvent) => {
+        console.log('[PERF:CLIENT] Navigation started to /me');
+        handleProtectedClick(e, '/me');
+      },
     },
   ];
 

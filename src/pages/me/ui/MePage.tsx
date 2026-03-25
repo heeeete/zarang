@@ -13,17 +13,25 @@ import { MeMenuSheet } from '@/src/features/profile-management/ui/(MeMenu)/MeMen
  * 마이 페이지 컴포넌트입니다 (서버 컴포넌트).
  */
 export const MePage = async () => {
-  const supabase = await createClient();
+  const start = performance.now();
+  console.log('[PERF:ME_PAGE] Page rendering started');
 
+  const supabaseStart = performance.now();
+  const supabase = await createClient();
+  console.log(`[PERF:ME_PAGE] createClient took ${(performance.now() - supabaseStart).toFixed(2)}ms`);
+
+  const authStart = performance.now();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  console.log(`[PERF:ME_PAGE] auth.getUser took ${(performance.now() - authStart).toFixed(2)}ms`);
 
   if (!user) {
     redirect('/login');
   }
 
   // 프로필 정보와 게시물 목록, 팔로워/팔로잉 수를 병렬로 조회합니다.
+  const queryStart = performance.now();
   const [profileResponse, typedPosts, followersCount, followingCount] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     fetchPostsData(supabase, {
@@ -37,8 +45,11 @@ export const MePage = async () => {
       .eq('following_id', user.id),
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
   ]);
+  console.log(`[PERF:ME_PAGE] Parallel queries took ${(performance.now() - queryStart).toFixed(2)}ms`);
 
   const profile = profileResponse.data;
+
+  console.log(`[PERF:ME_PAGE] Total MePage logic took ${(performance.now() - start).toFixed(2)}ms`);
 
   return (
     <div className="flex min-h-full flex-col bg-white">
