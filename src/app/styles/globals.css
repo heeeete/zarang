@@ -124,5 +124,17 @@
     @apply bg-background text-foreground;
   }
   html {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
   }
+}
+
+a,
+button,
+[role='button'],
+.tap-feedback {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.08s ease,
+    opacity 0.08s ease;
+  touch-action: manipulation;
 }
