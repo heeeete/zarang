@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/src/shared/ui/button';
 import { ProfileEditForm } from '@/src/features/profile-management/ui/ProfileEditForm';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 /**
  * 프로필 수정 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -11,16 +12,16 @@ import { ProfileEditForm } from '@/src/features/profile-management/ui/ProfileEdi
 export const ProfileEditPage = async () => {
   const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser();
+  const userId = await getServerUserId();
 
-  if (!user) {
+  if (!userId) {
     redirect('/login');
   }
 
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single();
 
   if (error || !profile) {

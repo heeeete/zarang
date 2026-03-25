@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
 import { Category } from '@/src/entities/post/model/schema';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 interface PostEditPageProps {
   params: Promise<{
@@ -18,11 +19,9 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = await getServerUserId();
 
-  if (!user) {
+  if (!userId) {
     redirect('/login');
   }
 
@@ -45,7 +44,7 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
   }
 
   // 작성자 본인인지 확인
-  if (post.author_id !== user.id) {
+  if (post.author_id !== userId) {
     redirect(`/posts/${id}`);
   }
 
