@@ -50,7 +50,7 @@ export interface DetailPost extends Post {
     height: number | null;
   }[];
   likes: { count: number }[];
-  comments: PostComment[];
+  comments: { count: number }[];
 }
 
 /**

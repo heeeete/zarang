@@ -22,7 +22,10 @@ export const fetchPostsData = async (
     images:post_images(width, height),
     post_likes:post_likes!post_likes_post_id_fkey(count),
     comments:comments!comments_post_id_fkey(count)
-  `).order('created_at', { ascending: false }).range(from, to);
+  `)
+  .order('created_at', { ascending: false })
+  .order('sort_order', { foreignTable: 'post_images', ascending: true })
+  .range(from, to);
 
   if (categoryId) query = query.eq('category_id', categoryId);
   if (authorId) query = query.eq('author_id', authorId);

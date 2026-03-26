@@ -150,7 +150,7 @@ export const findExistingChatRoom = async (
 /**
  * 두 유저 사이의 채팅방을 찾거나 새로 생성합니다 (1:1 채팅).
  */
-export const getOrCreateChatRoom = async (
+export const fetchOrCreateChatRoom = async (
   supabase: SupabaseClient<Database>,
   myId: string,
   targetUserId: string

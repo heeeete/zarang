@@ -17,6 +17,7 @@ export const fetchMyPostsSummary = async (
     `)
     .eq('author_id', userId)
     .order('created_at', { ascending: false })
+    .order('sort_order', { foreignTable: 'post_images', ascending: true })
     .range(0, 99);
 
   if (error) throw error;

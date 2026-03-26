@@ -26,10 +26,17 @@ interface PostDetailsPageProps {
  */
 export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   const { id } = await params;
+
+  const clientStart = Date.now();
   const supabase = createPublicClient();
+  const clientEnd = Date.now();
+  console.log(`[PERF] PostDetailsPage - Supabase Client 생성: ${clientEnd - clientStart}ms`);
 
   // 게시글 정보 조회 (RSC)
+  const fetchStart = Date.now();
   const post = (await fetchPostDetail(supabase, id)) as DetailPost | null;
+  const fetchEnd = Date.now();
+  console.log(`[PERF] PostDetailsPage - fetchPostDetail 데이터 페칭: ${fetchEnd - fetchStart}ms`);
 
   if (!post) {
     notFound();
@@ -97,7 +104,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         <PostInteractionBar 
           postId={id} 
           initialLikeCount={post.likes?.[0]?.count || 0} 
-          initialCommentCount={post.comments?.length || 0}
+          initialCommentCount={post.comments?.[0]?.count || 0}
         />
 
         {/* 댓글 섹션 (Client Component + TanStack Query) */}
