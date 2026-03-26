@@ -1,7 +1,7 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { ExploreFeed } from '@/src/widgets/explore-feed/ui/ExploreFeed';
 import { Category } from '@/src/entities/post/model/schema';
-import { fetchPostsData } from '@/src/entities/post/api/post-api';
+import { fetchPostsData } from '@/src/entities/post/api/fetch-posts-data';
 import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 /**

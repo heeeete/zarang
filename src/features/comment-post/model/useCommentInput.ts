@@ -9,7 +9,7 @@ import { useCommentContext } from '../ui/CommentProvider';
  * 댓글 입력창의 비즈니스 로직을 담당하는 훅 (FSD Model Layer)
  */
 export const useCommentInput = (postId: string) => {
-  const { replyingTo, editingComment, setReplyingTo, setEditingComment } = useCommentContext();
+  const { replyingTo, editingComment, setReplyingTo, setEditingComment, refetchComments } = useCommentContext();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -71,7 +71,9 @@ export const useCommentInput = (postId: string) => {
           onCancelReply();
           toast.success(replyingTo ? '답글을 남겼어요.' : '댓글을 남겼어요.');
         }
-        router.refresh();
+        
+        // 댓글 목록 새로고침 트리거
+        refetchComments();
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 에러가 발생했어요.';

@@ -5,7 +5,7 @@ import { ProfilePostGrid } from '@/src/widgets/profile-post-grid/ui/ProfilePostG
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { fetchPostsData } from '@/src/entities/post/api/post-api';
+import { fetchPostsData } from '@/src/entities/post/api/fetch-posts-data';
 import { ToggleFollowButton } from '@/src/features/profile-management/ui/ToggleFollowButton';
 import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
 import { MessageButton } from '@/src/features/chat/ui/MessageButton';

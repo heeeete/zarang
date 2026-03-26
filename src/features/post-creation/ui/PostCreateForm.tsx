@@ -20,7 +20,7 @@ import {
 import { usePostImageManager } from '@/src/entities/post/model/usePostImageManager';
 import { SortableImageItem } from '@/src/entities/post/ui/SortableImageItem';
 import { VoiceRecorder } from '@/src/entities/post/ui/VoiceRecorder';
-import { createPost } from '@/src/entities/post/api/post-api';
+import { createPost } from '../api/post-creation-api';
 
 // DnD Kit Imports
 import {

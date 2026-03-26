@@ -6,7 +6,7 @@ import { ProfileEditButton } from '@/src/features/profile-management/ui/ProfileE
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
 import { User as UserIcon } from 'lucide-react';
 import { ProfilePostGrid } from '@/src/widgets/profile-post-grid/ui/ProfilePostGrid';
-import { fetchMyPostsSummary } from '@/src/entities/post/api/post-api';
+import { fetchMyPostsSummary } from '@/src/entities/post/api/fetch-my-posts-summary';
 import { ProfileListSheet } from '@/src/features/profile-management/ui/ProfileListSheet';
 import { MeMenuSheet } from '@/src/features/profile-management/ui/(MeMenu)/MeMenuSheet';
 
