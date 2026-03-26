@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { createPublicClient } from '@/src/shared/lib/supabase/server';
 import { PostDetailsPage } from '@/src/pages/post-details/ui/PostDetailsPage';
 import { fetchPostDetail } from '@/src/entities/post/api/fetch-post-detail';
 
@@ -17,10 +16,8 @@ type Props = {
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const supabase = createPublicClient();
 
-  const post = await fetchPostDetail(supabase, id);
-
+  const post = await fetchPostDetail(id);
 
   if (!post) {
     return {
