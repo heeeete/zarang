@@ -38,7 +38,13 @@ export async function updateSession(request: NextRequest) {
   );
 
   // createServerClient 와 getClaims 사이에는 다른 로직 넣지 않는 게 안전
+  const authStart = Date.now();
   const { data, error } = await supabase.auth.getClaims();
+  const authEnd = Date.now();
+  
+  // 모든 요청마다 로그가 찍히면 너무 많을 수 있으므로 
+  // 실제 세션 확인이 필요한 경로(로그인/보호된 경로 등)에서 유의미하게 확인합니다.
+  console.log(`[PERF] middleware getClaims - ${authEnd - authStart}ms (path: ${pathname})`);
 
   const claims = data?.claims;
   const userId = claims?.sub ?? null;
