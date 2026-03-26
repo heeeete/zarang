@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Post } from '@/src/entities/post/model/types';
-import { fetchHomePosts } from '@/src/entities/post/api/post-api';
+import { fetchHomePosts } from '@/src/entities/post/api/fetch-home-posts';
 import { useAuth } from '@/src/app/providers/AuthProvider';
 
 const PAGE_SIZE = 12;

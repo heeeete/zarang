@@ -1,3 +1,5 @@
+'use client';
+
 import { Fragment } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -10,7 +12,7 @@ import { ReplyButton } from './ReplyButton';
 import { CommentActionMenu } from './CommentActionMenu';
 
 /**
- * 텍스트 내의 @닉네임 부분을 파란색으로 강조합니다. (RSC)
+ * 텍스트 내의 @닉네임 부분을 파란색으로 강조합니다.
  */
 const HighlightMention = ({ content }: { content: string }) => {
   const parts = content.split(/(@\S+)/g);
@@ -36,15 +38,15 @@ interface CommentListProps {
 }
 
 /**
- * 댓글 목록 (RSC)
- * 서버에서 날짜 포맷팅을 수행하여 하이드레이션 에러를 방지합니다.
+ * 댓글 목록 (Client Component)
+ * 클라이언트에서 실시간으로 날짜를 표시하고 계층 구조를 렌더링합니다.
  */
 export const CommentList = ({
   comments,
   currentUserId,
   isPostOwner,
 }: CommentListProps) => {
-  // 계층 구조 생성 (RSC에서 실행)
+  // 계층 구조 생성
   const rootComments = comments.filter((c) => !c.parent_id);
   const repliesMap = comments.reduce((acc, reply) => {
     if (reply.parent_id) {
@@ -97,7 +99,7 @@ export const CommentList = ({
                       >
                         {comment.author?.username}
                       </Link>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-muted-foreground" suppressHydrationWarning>
                         {formatDistanceToNow(new Date(comment.created_at), { locale: ko })} 전
                       </span>
                     </div>
@@ -155,7 +157,7 @@ export const CommentList = ({
                           >
                             {reply.author?.username}
                           </Link>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[10px] text-muted-foreground" suppressHydrationWarning>
                             {formatDistanceToNow(new Date(reply.created_at), { locale: ko })} 전
                           </span>
                         </div>

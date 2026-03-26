@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { createAdminClient } from '@/src/shared/lib/supabase/admin';
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 interface NewImageInput {
   image_url: string;
@@ -132,9 +132,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     await adminSupabase.from('posts').update(updateData).eq('id', id);
 
-    revalidateTag(`post-${id}`, 'max');
+    // 캐시 무효화 (ISR 페이지 갱신)
     revalidatePath(`/posts/${id}`);
     revalidatePath('/');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Post update error:', error);
@@ -170,9 +171,11 @@ export async function DELETE(
     if (toDelete.length) await adminSupabase.storage.from('post-images').remove(toDelete);
 
     await adminSupabase.from('posts').delete().eq('id', id);
-    revalidateTag(`post-${id}`, 'max');
+
+    // 캐시 무효화 (ISR 페이지 갱신)
     revalidatePath(`/posts/${id}`);
     revalidatePath('/');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Post delete error:', error);

@@ -1,6 +1,6 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { HomeFeed } from '@/src/widgets/home-feed/ui/HomeFeed';
-import { fetchHomePosts } from '@/src/entities/post/api/post-api';
+import { fetchHomePosts } from '@/src/entities/post/api/fetch-home-posts';
 import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 /**

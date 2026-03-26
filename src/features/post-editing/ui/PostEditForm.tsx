@@ -26,7 +26,7 @@ import {
 import { usePostImageManager, PostImageItem } from '@/src/entities/post/model/usePostImageManager';
 import { SortableImageItem } from '@/src/entities/post/ui/SortableImageItem';
 import { VoiceRecorder } from '@/src/entities/post/ui/VoiceRecorder';
-import { updatePost } from '@/src/entities/post/api/post-api';
+import { updatePost } from '../api/post-editing-api';
 
 // DnD Kit Imports
 import {
@@ -130,11 +130,17 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
         { deleteExistingAudio, newAudioFile: newAudioBlob },
       );
 
-      toast.success('수정 내용을 저장했어요.');
-      router.replace(`/posts/${post.id}`);
+      // 상세 페이지로 먼저 돌아감
+      router.back();
 
-      // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
-      await new Promise(() => {});
+      // 이동 완료 후 토스트 및 갱신 수행
+      setTimeout(() => {
+        toast.success('수정 내용을 저장했어요.');
+        router.refresh();
+      }, 0);
+
+      // 페이지 이동이 진행되는 동안 버튼 비활성화를 유지하기 위해 약간의 대기 시간을 가집니다.
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '수정 내용을 저장하지 못했어요.');
     }

@@ -6,6 +6,7 @@ import { BottomNav } from '@/src/shared/ui/BottomNav';
 import { Toaster } from '@/src/shared/ui/sonner';
 import { NotificationListener } from '@/src/features/notifications/ui/NotificationListener';
 import { AuthProvider } from '@/src/app/providers/AuthProvider';
+import { QueryProvider } from '@/src/app/providers/QueryProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -28,15 +29,17 @@ export default function RootLayout({
   return (
     <html lang="ko" className={roboto.variable}>
       <body className="bg-neutral-100 font-sans antialiased">
-        <AuthProvider>
-          <div className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col bg-white shadow-xl">
-            <Header />
-            <main className="flex flex-1 flex-col pb-16">{children}</main>
-            <BottomNav />
-          </div>
-          <Toaster position="top-center" />
-          <NotificationListener />
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <div className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col bg-white shadow-xl">
+              <Header />
+              <main className="flex flex-1 flex-col pb-16">{children}</main>
+              <BottomNav />
+            </div>
+            <Toaster position="top-center" />
+            <NotificationListener />
+          </AuthProvider>
+        </QueryProvider>
         <Analytics />
         <SpeedInsights />
       </body>
