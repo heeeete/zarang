@@ -1,4 +1,3 @@
-import { createPublicClient } from '@/src/shared/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -22,21 +21,13 @@ interface PostDetailsPageProps {
 /**
  * 게시글 상세 페이지 컴포넌트입니다 (서버 컴포넌트).
  * 이 페이지는 정적 캐싱(Full Route Cache)이 가능하도록 설계되었습니다.
- * createPublicClient()를 사용함으로써 cookies() 의존성을 제거하였습니다.
+ * createPublicClient()는 이제 fetchPostDetail 내부에서 처리됩니다.
  */
 export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
   const { id } = await params;
 
-  const clientStart = Date.now();
-  const supabase = createPublicClient();
-  const clientEnd = Date.now();
-  console.log(`[PERF] PostDetailsPage - Supabase Client 생성: ${clientEnd - clientStart}ms`);
-
   // 게시글 정보 조회 (RSC)
-  const fetchStart = Date.now();
-  const post = (await fetchPostDetail(supabase, id)) as DetailPost | null;
-  const fetchEnd = Date.now();
-  console.log(`[PERF] PostDetailsPage - fetchPostDetail 데이터 페칭: ${fetchEnd - fetchStart}ms`);
+  const post = (await fetchPostDetail(id)) as DetailPost | null;
 
   if (!post) {
     notFound();
@@ -78,7 +69,7 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
               </span>
             </div>
           </Link>
-          
+
           {/* 팔로우 버튼 등은 PostHeaderActions 내부에 포함됨 */}
         </div>
 
@@ -101,9 +92,9 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
         </div>
 
         {/* 상호작용 바 (좋아요 상태는 클라이언트에서, 카운트는 RSC에서 즉시 표시) */}
-        <PostInteractionBar 
-          postId={id} 
-          initialLikeCount={post.likes?.[0]?.count || 0} 
+        <PostInteractionBar
+          postId={id}
+          initialLikeCount={post.likes?.[0]?.count || 0}
           initialCommentCount={post.comments?.[0]?.count || 0}
         />
 
