@@ -1,9 +1,9 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import { PostEditForm } from '@/src/features/post-editing/ui/PostEditForm';
-import { Category } from '@/src/entities/post/model/schema';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
 import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
+import { fetchCategories, Category } from '@/src/entities/category/api/fetch-categories';
 
 interface PostEditPageProps {
   params: Promise<{
@@ -25,19 +25,18 @@ export const PostEditPage = async ({ params }: PostEditPageProps) => {
     redirect('/login');
   }
 
-  // 게시글 정보와 카테고리 목록을 가져옵니다.
-  const [postResponse, categoriesResponse] = await Promise.all([
+  // 게시글 정보와 캐시된 카테고리 목록을 가져옵니다.
+  const [postResponse, categories] = await Promise.all([
     supabase
       .from('posts')
       .select('*, images:post_images(*)')
       .eq('id', id)
       .order('sort_order', { foreignTable: 'post_images', ascending: true })
       .single(),
-    supabase.from('categories').select('id, slug, label').order('sort_order', { ascending: true }),
+    fetchCategories(),
   ]);
 
   const post = postResponse.data;
-  const categories = categoriesResponse.data;
 
   if (postResponse.error || !post) {
     notFound();

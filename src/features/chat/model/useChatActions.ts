@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { sendMessage, getOrCreateChatRoom } from '@/src/entities/chat/api/chat-api';
+import { sendMessage, fetchOrCreateChatRoom } from '@/src/entities/chat/api/chat-api';
 import { toast } from 'sonner';
 
 /**
@@ -23,7 +23,7 @@ export const useChatActions = (
     try {
       // 1:1 채팅방 지연 생성 (첫 메시지 전송 시)
       if (!currentRoomId && targetUserId) {
-        currentRoomId = await getOrCreateChatRoom(supabase, userId, targetUserId);
+        currentRoomId = await fetchOrCreateChatRoom(supabase, userId, targetUserId);
         setRoomId(currentRoomId);
         // URL 교체 (new -> roomId)
         router.replace(`/messages/${currentRoomId}`);

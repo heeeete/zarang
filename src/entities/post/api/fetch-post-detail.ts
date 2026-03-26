@@ -11,13 +11,12 @@ export const fetchPostDetail = cache(async (supabase: SupabaseClient, id: string
     .from('posts')
     .select(`
       *, author:profiles!posts_author_id_fkey(id, username, avatar_url),
-      categories(label), images:post_images(id, image_url, width, height),
+      images:post_images(id, image_url, width, height),
       likes:post_likes(count),
-      comments:comments(*, author:profiles!comments_author_id_fkey(username, avatar_url))
+      comments:comments(count)
     `)
     .eq('id', id)
     .order('sort_order', { foreignTable: 'post_images', ascending: true })
-    .order('created_at', { foreignTable: 'comments', ascending: true })
     .single();
 
   if (error || !post) return null;
