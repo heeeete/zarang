@@ -1,5 +1,6 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
-import { fetchMessages, findExistingChatRoom } from '@/src/entities/chat/api/chat-api';
+import { fetchMessages } from '@/src/entities/chat/api/fetch-messages';
+import { findExistingChatRoom } from '@/src/entities/chat/api/find-existing-chat-room';
 import { ChatRoomClient } from './ChatRoomClient';
 import { Message, ChatUserProfile } from '@/src/entities/chat/model/types';
 import { redirect } from 'next/navigation';

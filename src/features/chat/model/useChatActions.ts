@@ -3,7 +3,8 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { sendMessage, fetchOrCreateChatRoom } from '@/src/entities/chat/api/chat-api';
+import { sendMessage } from '@/src/entities/chat/api/send-message';
+import { fetchOrCreateChatRoom } from '@/src/entities/chat/api/fetch-or-create-chat-room';
 import { toast } from 'sonner';
 
 /**

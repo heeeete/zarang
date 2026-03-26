@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { fetchChatRooms } from '@/src/entities/chat/api/chat-api';
+import { fetchChatRooms } from '@/src/entities/chat/api/fetch-chat-rooms';
 
 interface MessageState {
   hasUnread: boolean;

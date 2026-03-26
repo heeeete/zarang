@@ -18,6 +18,7 @@ export interface ChatParticipant {
   user_id: string;
   joined_at: string;
   last_read_at: string;
+  deleted_at?: string | null;
   user?: ChatUserProfile;
 }
 

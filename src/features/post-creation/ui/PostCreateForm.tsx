@@ -94,7 +94,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
 
       toast.success('자랑거리를 성공적으로 등록했어요!');
       router.replace(`/posts/${id}`);
-      
+
       // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
       await new Promise(() => {});
     } catch (error) {
@@ -167,7 +167,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
               >
                 <Button
                   variant="outline"
-                  className="h-12 w-full justify-between px-4 text-base font-medium text-neutral-700"
+                  className="h-12 w-full justify-between px-4 font-medium text-neutral-700"
                   type="button"
                 >
                   {field.value ? (
@@ -199,7 +199,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
           <Textarea
             {...register('description')}
             placeholder="취향 아이템에 대해 들려주세요"
-            className="min-h-[180px] resize-none text-base"
+            className="min-h-[180px] resize-none"
           />
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
