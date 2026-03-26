@@ -13,11 +13,10 @@ export const fetchMyPostsSummary = async (
     .from('posts')
     .select(`
       id, thumbnail_url, audio_url, created_at,
-      images:post_images(width, height)
+      thumbnail_width, thumbnail_height
     `)
     .eq('author_id', userId)
     .order('created_at', { ascending: false })
-    .order('sort_order', { foreignTable: 'post_images', ascending: true })
     .range(0, 99);
 
   if (error) throw error;
@@ -27,7 +26,8 @@ export const fetchMyPostsSummary = async (
     thumbnail_url: string | null;
     audio_url: string | null;
     created_at: string;
-    images: { width: number; height: number }[];
+    thumbnail_width: number | null;
+    thumbnail_height: number | null;
   }
 
   return (data as unknown as RawMyPostResponse[]).map((post) => ({
@@ -35,8 +35,8 @@ export const fetchMyPostsSummary = async (
     thumbnail_url: post.thumbnail_url,
     audio_url: post.audio_url,
     created_at: post.created_at,
-    width: post.images?.[0]?.width || 800,
-    height: post.images?.[0]?.height || 800,
+    width: post.thumbnail_width || 800,
+    height: post.thumbnail_height || 800,
     // 마이페이지 그리드에서 사용하지 않는 필드는 기본값 처리
     author_id: userId,
     description: '',

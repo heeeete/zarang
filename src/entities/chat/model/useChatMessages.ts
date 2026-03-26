@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Message, ChatUserProfile } from './types';
-import { updateLastReadAt } from '../api/chat-api';
+import { updateLastReadAt } from '../api/update-last-read-at';
 import { useMessageStore } from '@/src/entities/message/model/messageStore';
 
 export const useChatMessages = (roomId: string | null, initialMessages: Message[], initialTargetProfile?: ChatUserProfile | null, currentUserId?: string) => {

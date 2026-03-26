@@ -57,7 +57,7 @@ export function NotificationListener() {
       )
       .subscribe();
 
-    // 2. 새로운 메시지 실시간 구독
+    // 2. 새로운 메시지 실시간 구독 (RLS 덕분에 내가 참여한 방의 메시지만 수신됨)
     const messageChannel = supabase
       .channel(`chat-notifications-${userId}`)
       .on(
@@ -66,38 +66,28 @@ export function NotificationListener() {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
+          filter: `sender_id=neq.${userId}`, // 내가 보낸 메시지는 제외
         },
         async (payload) => {
           const newMessage = payload.new;
           
-          // 내게 온 메시지인지 확인 (참여자인지 확인)
-          const { data: participant } = await supabase
-            .from('chat_participants' as 'profiles')
-            .select('user_id')
-            .eq('room_id', newMessage.room_id)
-            .eq('user_id', userId)
-            .maybeSingle();
+          // 스마트 알림 로직: 현재 내가 이 채팅방을 보고 있지 않을 때만 알림을 띄웁니다.
+          const isCurrentlyInThisRoom = window.location.pathname === `/messages/${newMessage.room_id}`;
+          
+          if (!isCurrentlyInThisRoom) {
+            // 전역 상태 업데이트 (안 읽은 메시지 있음)
+            useMessageStore.getState().setHasUnread(true);
 
-          // 내가 보낸 메시지가 아니고, 내가 참여 중인 방의 메시지일 때만 알림
-          if (participant && newMessage.sender_id !== userId) {
-            // 스마트 알림 로직: 현재 내가 이 채팅방을 보고 있지 않을 때만 알림을 띄웁니다.
-            const isCurrentlyInThisRoom = window.location.pathname === `/messages/${newMessage.room_id}`;
-            
-            if (!isCurrentlyInThisRoom) {
-              // 전역 상태 업데이트 (안 읽은 메시지 있음)
-              useMessageStore.getState().setHasUnread(true);
+            const { data: sender } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', newMessage.sender_id)
+              .single();
 
-              const { data: sender } = await supabase
-                .from('profiles')
-                .select('username')
-                .eq('id', newMessage.sender_id)
-                .single();
-
-              showNotification(
-                `${sender?.username || '누군가'}님의 메시지: ${newMessage.content}`,
-                `/messages/${newMessage.room_id}`
-              );
-            }
+            showNotification(
+              `${sender?.username || '누군가'}님의 메시지: ${newMessage.content}`,
+              `/messages/${newMessage.room_id}`
+            );
           }
         }
       )

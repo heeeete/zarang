@@ -1,6 +1,6 @@
 import { createClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { fetchChatRooms } from '@/src/entities/chat/api/chat-api';
+import { fetchChatRooms } from '@/src/entities/chat/api/fetch-chat-rooms';
 import { SubHeader } from '@/src/shared/ui/SubHeader';
 import { MessageListClient } from './MessageListClient';
 import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';

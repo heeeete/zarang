@@ -101,7 +101,7 @@ export const ChatRoomClient = ({
                   </span>
                 )}
                 <div
-                  className={`max-w-[260px] whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm shadow-sm ${isMine ? 'rounded-tr-none bg-primary text-white' : 'rounded-tl-none border border-neutral-100 bg-white text-neutral-800'}`}
+                  className={`max-w-[260px] rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap shadow-sm ${isMine ? 'rounded-tr-none bg-primary text-white' : 'rounded-tl-none border border-neutral-100 bg-white text-neutral-800'}`}
                 >
                   {msg.content}
                 </div>

@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
-import { ChatRoom } from '@/src/entities/chat/model/types';
-import { fetchChatRooms } from '@/src/entities/chat/api/chat-api';
+import { ChatRoom, Message } from '@/src/entities/chat/model/types';
+import { deleteChatRoom } from '@/src/entities/chat/api/delete-chat-room';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { ChevronRight, MessageSquare, User as UserIcon } from 'lucide-react';
+import { ChevronRight, MessageSquare, User as UserIcon, Trash2 } from 'lucide-react';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/src/shared/ui/context-menu";
+import { toast } from 'sonner';
 
 interface MessageListClientProps {
   userId: string;
@@ -19,6 +26,19 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
   const [rooms, setRooms] = useState<ChatRoom[]>(initialRooms);
   const supabase = createClient();
 
+  // 채팅방 삭제 처리
+  const handleDeleteRoom = async (roomId: string) => {
+    try {
+      await deleteChatRoom(supabase, roomId, userId);
+      setRooms((prev) => prev.filter((r) => r.id !== roomId));
+      toast.success('채팅방을 삭제했어요.');
+    } catch (error) {
+      console.error('Failed to delete room:', error);
+      toast.error('채팅방 삭제에 실패했어요.');
+    }
+  };
+
+
   useEffect(() => {
     setRooms(initialRooms);
   }, [initialRooms]);
@@ -26,15 +46,32 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
   // 실시간 구독: 내 채팅방들과 관련된 새 메시지가 올 때 목록 갱신
   useEffect(() => {
     const channel = supabase
-      .channel('message-list-realtime')
+      .channel(`message-list-realtime-${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        async () => {
-          // 메시지가 삽입되면 목록을 다시 가져와서 최신 상태 유지
-          // (더 효율적으로 상태만 변경할 수도 있지만, 읽음 상태나 안 읽은 개수 계산을 위해 재조회가 안전함)
-          const updatedRooms = await fetchChatRooms(supabase, userId);
-          setRooms(updatedRooms);
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'messages',
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          
+          // 내가 보낸 메시지가 아닐 때만 목록 갱신
+          if (newMessage.sender_id !== userId) {
+            setRooms((prev) => 
+              prev.map((room) => {
+                if (room.id === newMessage.room_id) {
+                  return {
+                    ...room,
+                    last_message: newMessage,
+                    unread_count: (room.unread_count || 0) + 1,
+                  };
+                }
+                return room;
+              })
+            );
+          }
         },
       )
       .subscribe();
@@ -74,57 +111,74 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
         const unreadCount = room.unread_count || 0;
 
         return (
-          <Link
-            key={room.id}
-            href={`/messages/${room.id}`}
-            className="flex items-center gap-4 border-b border-neutral-50 p-4 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
-            prefetch={false}
-          >
-            <div className="relative size-12 shrink-0 overflow-hidden rounded-full border bg-neutral-100">
-              {otherUser?.avatar_url ? (
-                <Image
-                  src={otherUser.avatar_url}
-                  alt={otherUser.username || 'avatar'}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-neutral-50 text-neutral-300">
-                  <UserIcon className="size-6" />
+          <ContextMenu key={room.id}>
+            <ContextMenuTrigger>
+              <Link
+                href={`/messages/${room.id}`}
+                className="flex items-center gap-4 border-b border-neutral-50 p-4 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
+                prefetch={false}
+              >
+                <div className="relative size-12 shrink-0 overflow-hidden rounded-full border bg-neutral-100">
+                  {otherUser?.avatar_url ? (
+                    <Image
+                      src={otherUser.avatar_url}
+                      alt={otherUser.username || 'avatar'}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-neutral-50 text-neutral-300">
+                      <UserIcon className="size-6" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <div className="flex items-center justify-between">
-                <span className="truncate text-sm font-bold text-neutral-900">
-                  {otherUser?.username || '알 수 없는 사용자'}
-                </span>
-                {room.last_message && (
-                  <span className="shrink-0 text-[10px] text-neutral-400">
-                    {formatDistanceToNow(new Date(room.last_message.created_at), {
-                      addSuffix: true,
-                      locale: ko,
-                    })}
-                  </span>
-                )}
-              </div>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="truncate text-sm font-bold text-neutral-900">
+                      {otherUser?.username || '알 수 없는 사용자'}
+                    </span>
+                    {room.last_message && (
+                      <span className="shrink-0 text-[10px] text-neutral-400">
+                        {formatDistanceToNow(new Date(room.last_message.created_at), {
+                          addSuffix: true,
+                          locale: ko,
+                        })}
+                      </span>
+                    )}
+                  </div>
 
-              <div className="flex items-center justify-between gap-2">
-                <p
-                  className={`flex-1 truncate text-xs ${unreadCount > 0 ? 'font-bold text-neutral-900' : 'font-medium text-neutral-500'}`}
-                >
-                  {unreadCount > 1
-                    ? `새 메시지 ${unreadCount}개`
-                    : room.last_message?.content || '대화를 시작해보세요!'}
-                </p>
-                {unreadCount > 0 && <div className="size-2 shrink-0 rounded-full bg-primary" />}
-              </div>
-            </div>
-            <ChevronRight className="size-4 shrink-0 text-neutral-300" />
-          </Link>
+                  <div className="flex items-center justify-between gap-2">
+                    <p
+                      className={`flex-1 truncate text-xs ${unreadCount > 0 ? 'font-bold text-neutral-900' : 'font-medium text-neutral-500'}`}
+                    >
+                      {unreadCount > 1
+                        ? `새 메시지 ${unreadCount}개`
+                        : room.last_message?.content || '대화를 시작해보세요!'}
+                    </p>
+                    {unreadCount > 0 && <div className="size-2 shrink-0 rounded-full bg-primary" />}
+                  </div>
+                </div>
+                <ChevronRight className="size-4 shrink-0 text-neutral-300" />
+              </Link>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-48">
+              <ContextMenuItem 
+                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDeleteRoom(room.id);
+                }}
+              >
+                <Trash2 data-icon="inline-start" />
+                삭제하기
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         );
       })}
     </div>
   );
 };
+
