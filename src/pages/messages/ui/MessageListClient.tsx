@@ -45,8 +45,9 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
 
   // 실시간 메시지 수신 시 목록 갱신 (NotificationListener에서 이벤트 수신)
   useEffect(() => {
-    const handleRefresh = (event: any) => {
-      const newMessage = event.detail as Message;
+    const handleRefresh = (event: Event) => {
+      const customEvent = event as CustomEvent<Message>;
+      const newMessage = customEvent.detail;
       
       // 내가 보낸 메시지가 아닐 때만 목록 갱신
       if (newMessage.sender_id !== userId) {
@@ -65,10 +66,10 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
       }
     };
 
-    window.addEventListener('zarang:refresh-messages', handleRefresh);
+    window.addEventListener('zarang:refresh-messages', handleRefresh as EventListener);
 
     return () => {
-      window.removeEventListener('zarang:refresh-messages', handleRefresh);
+      window.removeEventListener('zarang:refresh-messages', handleRefresh as EventListener);
     };
   }, [userId]);
 

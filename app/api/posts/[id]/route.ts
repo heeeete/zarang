@@ -4,6 +4,7 @@ import { createAdminClient } from '@/src/shared/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
 interface NewImageInput {
+  tempId: string;
   image_url: string;
   storage_path: string;
   width: number;
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       const { data: insertedImages } = await adminSupabase
         .from('post_images')
         .insert(
-          newImages.map((img: any) => ({
+          newImages.map((img: NewImageInput) => ({
             post_id: id,
             image_url: img.image_url,
             storage_path: img.storage_path,
@@ -103,7 +104,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
       if (insertedImages) {
         insertedImages.forEach((img) => {
-          const clientImg = newImages.find((ni: any) => ni.storage_path === img.storage_path);
+          const clientImg = newImages.find((ni: NewImageInput) => ni.storage_path === img.storage_path);
           if (clientImg) {
             tempIdToRealId[clientImg.tempId] = img.id;
           }
