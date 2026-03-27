@@ -4,31 +4,27 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { Loader2Icon, ImageIcon, Mic } from 'lucide-react';
+import { ChevronDown, Check, ImageIcon, Loader2Icon } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { Button } from '@/src/shared/ui/button';
 import { Textarea } from '@/src/shared/ui/textarea';
-import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/shared/ui/select';
-import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
+import { Field, FieldError } from '@/src/shared/ui/field';
 
-// Entity Layer Imports
 import {
   postFormSchema,
   type PostFormInput,
   type Category,
 } from '@/src/entities/post/model/schema';
-import { usePostImageManager, PostImageItem } from '@/src/entities/post/model/usePostImageManager';
+import {
+  usePostImageManager,
+  type PostImageItem,
+} from '@/src/entities/post/model/usePostImageManager';
 import { SortableImageItem } from '@/src/entities/post/ui/SortableImageItem';
 import { VoiceRecorder } from '@/src/entities/post/ui/VoiceRecorder';
+import { CategoryDrawer } from '@/src/entities/post/ui/CategoryDrawer';
 import { updatePost } from '../api/post-editing-api';
 
-// DnD Kit Imports
 import {
   DndContext,
   closestCenter,
@@ -36,7 +32,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -59,10 +55,64 @@ interface PostEditFormProps {
   categories: Category[];
 }
 
+interface StepItemProps {
+  label: string;
+  active?: boolean;
+  done?: boolean;
+  required?: boolean;
+}
+
+interface SectionProps {
+  title: string;
+  required?: boolean;
+  children: React.ReactNode;
+}
+
+const StepItem = ({ label, active, done, required }: StepItemProps) => {
+  return (
+    <div
+      className={[
+        'flex min-w-0 items-center gap-2 rounded-full border px-3 py-2 text-xs',
+        done
+          ? 'border-primary/20 bg-primary/5 text-foreground'
+          : active
+            ? 'border-foreground/15 bg-muted/50 text-foreground'
+            : 'border-border bg-background text-muted-foreground',
+      ].join(' ')}
+    >
+      <div
+        className={[
+          'flex size-5 shrink-0 items-center justify-center rounded-full',
+          done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+        ].join(' ')}
+      >
+        {done ? <Check className="size-3" /> : <div className="size-1.5 rounded-full bg-current" />}
+      </div>
+
+      <span className="truncate font-medium">{label}</span>
+      {required ? <span className="shrink-0 text-[10px] text-red-500">*</span> : null}
+    </div>
+  );
+};
+
+const Section = ({ title, required, children }: SectionProps) => {
+  return (
+    <section className="rounded-2xl border bg-background p-4">
+      <div className="mb-3 flex items-center gap-1.5">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {required ? <span className="text-xs text-red-500">*</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+};
+
 export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   const router = useRouter();
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [deleteExistingAudio, setDeleteExistingAudio] = useState(false);
+  const [newAudioBlob, setNewAudioBlob] = useState<Blob | null>(null);
 
-  // 초기 이미지 데이터 변환
   const initialImages: PostImageItem[] = post.images.map((img) => ({
     id: img.id,
     url: img.image_url,
@@ -88,9 +138,6 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   const { imageItems, deletedImageIds, addImages, removeImage, reorderImages } =
     usePostImageManager(initialImages, setValue);
 
-  const [deleteExistingAudio, setDeleteExistingAudio] = useState(false);
-  const [newAudioBlob, setNewAudioBlob] = useState<Blob | null>(null);
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -98,8 +145,14 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedCategoryId = watch('category_id');
-  const isKeyboardCategory =
-    categories.find((c) => c.id === selectedCategoryId)?.slug === 'keyboard';
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const isKeyboardCategory = selectedCategory?.slug === 'keyboard';
+
+  const descriptionValue = watch('description');
+
+  const imageDone = imageItems.length > 0;
+  const categoryDone = Boolean(selectedCategoryId);
+  const descriptionDone = Boolean(descriptionValue?.trim());
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -121,25 +174,38 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
 
       const newImageFiles = imageItems
         .filter((item) => item.type === 'new')
-        .map((item) => item.file as File);
+        .map((item) => ({
+          file: item.file as File,
+          tempId: item.id,
+        }));
+
+      const imageOrder = imageItems.map((item) => ({
+        id: item.id,
+        type: item.type as 'existing' | 'new',
+      }));
 
       await updatePost(
         post.id,
         data,
-        { deletedImageIds, remainingImageIds: remainingExistingIds, newImageFiles },
-        { deleteExistingAudio, newAudioFile: newAudioBlob },
+        {
+          deletedImageIds,
+          remainingImageIds: remainingExistingIds,
+          newImageFiles,
+          imageOrder,
+        },
+        {
+          deleteExistingAudio,
+          newAudioFile: newAudioBlob,
+        },
       );
 
-      // 상세 페이지로 먼저 돌아감
       router.back();
 
-      // 이동 완료 후 토스트 및 갱신 수행
       setTimeout(() => {
         toast.success('수정 내용을 저장했어요.');
         router.refresh();
       }, 0);
 
-      // 페이지 이동이 진행되는 동안 버튼 비활성화를 유지하기 위해 약간의 대기 시간을 가집니다.
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '수정 내용을 저장하지 못했어요.');
@@ -147,146 +213,159 @@ export const PostEditForm = ({ post, categories }: PostEditFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-4">
-      <FieldGroup>
-        {/* Image Upload Area */}
-        <Field>
-          <FieldLabel>사진 ({imageItems.length}/10)</FieldLabel>
-          <FieldContent>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="grid grid-cols-3 gap-2">
-                <SortableContext
-                  items={imageItems.map((item) => item.id)}
-                  strategy={rectSortingStrategy}
-                >
-                  {imageItems.map((item, index) => (
-                    <SortableImageItem
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      onRemove={removeImage}
-                    />
-                  ))}
-                </SortableContext>
-                {imageItems.length < 10 && (
-                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-neutral-50 transition-colors hover:border-primary">
-                    <ImageIcon className="size-8 text-muted-foreground" />
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </DndContext>
-          </FieldContent>
-          {errors.images && <FieldError>{errors.images.message}</FieldError>}
-        </Field>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="mx-auto flex w-full max-w-[420px] flex-col gap-4 px-4 py-4"
+    >
+      <div className="rounded-2xl border bg-background p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <StepItem label="이미지" required active={!imageDone} done={imageDone} />
+          <StepItem
+            label="카테고리"
+            required
+            active={imageDone && !categoryDone}
+            done={categoryDone}
+          />
+          <StepItem label="설명" active={imageDone && categoryDone} done={descriptionDone} />
+        </div>
+      </div>
 
-        {/* Category */}
-        <Field>
-          <FieldLabel>카테고리</FieldLabel>
+      <Field>
+        <Section title="이미지" required>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-3 gap-2">
+              <SortableContext
+                items={imageItems.map((item) => item.id)}
+                strategy={rectSortingStrategy}
+              >
+                {imageItems.map((item, index) => (
+                  <SortableImageItem
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onRemove={removeImage}
+                  />
+                ))}
+              </SortableContext>
+
+              {imageItems.length < 10 && (
+                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 transition-colors hover:bg-muted/50">
+                  <ImageIcon className="size-5 text-muted-foreground" />
+                  <span className="mt-2 text-[11px] font-medium text-muted-foreground">
+                    {imageItems.length}/10
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </DndContext>
+
+          {errors.images ? <FieldError className="mt-2">{errors.images.message}</FieldError> : null}
+        </Section>
+      </Field>
+
+      <Field>
+        <Section title="카테고리" required>
           <Controller
             name="category_id"
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="카테고리를 선택해주세요">
-                    {categories.find((cat) => cat.id === field.value)?.label}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CategoryDrawer
+                categories={categories}
+                selected={field.value}
+                onSelect={(id) => field.onChange(id)}
+                open={isCategoryOpen}
+                onOpenChange={setIsCategoryOpen}
+                showAllOption={false}
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 w-full justify-between rounded-xl px-4 text-sm font-medium"
+                >
+                  <span className="truncate">
+                    {field.value ? selectedCategory?.label : '카테고리 선택'}
+                  </span>
+                  <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
+                </Button>
+              </CategoryDrawer>
             )}
           />
-          {errors.category_id && <FieldError>{errors.category_id.message}</FieldError>}
-        </Field>
 
-        {/* Audio (ASMR) */}
-        {isKeyboardCategory && (
-          <Field>
-            <FieldLabel>타건음 (ASMR)</FieldLabel>
-            <FieldContent>
-              <div className="flex flex-col gap-3">
-                {post.audio_url && !deleteExistingAudio && !newAudioBlob && (
-                  <div className="flex items-center justify-between rounded-xl border bg-neutral-50 p-3">
-                    <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase">
-                      <Mic className="size-3" /> Existing ASMR
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteExistingAudio(true)}
-                      className="text-[10px] font-medium text-red-500 hover:underline"
-                    >
-                      삭제하기
-                    </button>
-                  </div>
-                )}
+          {errors.category_id ? (
+            <FieldError className="mt-2">{errors.category_id.message}</FieldError>
+          ) : null}
+        </Section>
+      </Field>
 
-                {(deleteExistingAudio || !post.audio_url || newAudioBlob) && (
-                  <VoiceRecorder onRecordingComplete={setNewAudioBlob} />
-                )}
+      {isKeyboardCategory ? (
+        <Section title="타건음">
+          <VoiceRecorder onRecordingComplete={setNewAudioBlob} />
 
-                {deleteExistingAudio && !newAudioBlob && (
-                  <p className="px-1 text-[10px] font-medium text-amber-600">
-                    * 기존 녹음이 삭제될 예정이에요. 새로 녹음할 수도 있어요.
-                  </p>
-                )}
-              </div>
-            </FieldContent>
-          </Field>
-        )}
+          {post.audio_url && !newAudioBlob ? (
+            <button
+              type="button"
+              onClick={() => setDeleteExistingAudio((prev) => !prev)}
+              className="mt-3 text-xs text-muted-foreground underline underline-offset-4"
+            >
+              {deleteExistingAudio ? '기존 타건음 유지' : '기존 타건음 삭제'}
+            </button>
+          ) : null}
+        </Section>
+      ) : null}
 
-        {/* Description */}
-        <Field>
-          <FieldLabel>자랑거리 설명</FieldLabel>
+      <Field>
+        <Section title="설명">
           <Textarea
             {...register('description')}
-            placeholder="아이템에 대해 들려주세요"
-            className="min-h-[180px] resize-none text-sm"
+            placeholder="설명을 입력해주세요"
+            className="min-h-[140px] resize-none rounded-xl"
           />
-          {errors.description && <FieldError>{errors.description.message}</FieldError>}
-        </Field>
-      </FieldGroup>
 
-      <div className="mt-4 flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="h-12 flex-1"
-          onClick={() => router.back()}
-        >
-          취소
-        </Button>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isSubmitting}
-          className="h-12 flex-1 text-base font-bold shadow-lg shadow-primary/20"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> 저장 중...
-            </>
-          ) : (
-            '수정완료'
-          )}
-        </Button>
+          {errors.description ? (
+            <FieldError className="mt-2">{errors.description.message}</FieldError>
+          ) : null}
+        </Section>
+      </Field>
+
+      <div className="sticky bottom-0 bg-background/95 pt-2 pb-1 backdrop-blur">
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="h-12 flex-1 rounded-xl text-sm font-semibold"
+            onClick={() => router.back()}
+          >
+            취소
+          </Button>
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting}
+            className="h-12 flex-1 rounded-xl text-sm font-semibold"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
+                저장 중
+              </>
+            ) : (
+              '수정완료'
+            )}
+          </Button>
+        </div>
       </div>
     </form>
   );

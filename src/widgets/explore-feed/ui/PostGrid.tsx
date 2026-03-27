@@ -33,7 +33,7 @@ export const PostGrid = ({ posts, loading }: PostGridProps) => {
 
   return (
     <div className="">
-      <ResponsiveMasonry columnsCountBreakPoints={{ 0: 2 }} gutterBreakPoints={{ 0: '1px' }}>
+      <ResponsiveMasonry columnsCountBreakPoints={{ 0: 2 }} gutterBreakPoints={{ 0: '3px' }}>
         <Masonry>
           {posts.map((post, index) => (
             <PostCard key={post.id} post={post} priority={index === 0} />

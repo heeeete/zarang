@@ -22,7 +22,7 @@ export const PostCard = ({ post, priority = false }: PostCardProps) => {
       <Link
         href={`/posts/${post.id}`}
         prefetch={false}
-        className="group relative block w-full overflow-hidden bg-neutral-100 transition-all active:scale-[0.98]"
+        className="group relative block w-full overflow-hidden bg-neutral-100 transition-all"
       >
         {optimizedImage ? (
           <div style={{ paddingBottom: `${(1 / aspectRatio) * 100}%` }} className="relative w-full">

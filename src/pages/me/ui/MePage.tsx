@@ -26,14 +26,8 @@ export const MePage = async () => {
   const [profileResponse, typedPosts, followersCount, followingCount] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).single(),
     fetchMyPostsSummary(supabase, userId),
-    supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('following_id', userId),
-    supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('follower_id', userId),
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId),
   ]);
 
   const profile = profileResponse.data;
@@ -41,7 +35,7 @@ export const MePage = async () => {
   return (
     <div className="flex min-h-full flex-col bg-white">
       {/* 상단 헤더: 인스타그램 스타일 (유저네임 + 메뉴 아이콘) */}
-      <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b bg-white px-4">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-white px-4">
         <h2 className="text-base font-bold">{profile?.username}</h2>
         <MeMenuSheet />
       </header>

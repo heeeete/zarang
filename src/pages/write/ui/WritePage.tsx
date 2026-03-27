@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { PostCreateForm } from '@/src/features/post-creation/ui/PostCreateForm';
 import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 import { fetchCategories } from '@/src/entities/category/api/fetch-categories';
+import { SubHeader } from '@/src/shared/ui/SubHeader';
 
 /**
  * 게시글 작성 페이지 컴포넌트입니다 (서버 컴포넌트).
@@ -19,9 +20,7 @@ export const WritePage = async () => {
 
   return (
     <div className="flex flex-col bg-white">
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-center border-b bg-white/90 px-4 backdrop-blur-md">
-        <h2 className="text-sm font-semibold text-neutral-900">새 자랑거리 작성</h2>
-      </header>
+      <SubHeader title="게시글 작성" />
 
       <PostCreateForm categories={categories} />
     </div>

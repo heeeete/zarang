@@ -9,7 +9,12 @@ import { PostFormInput } from '@/src/entities/post/model/schema';
 export const updatePost = async (
   postId: string,
   data: PostFormInput,
-  imageOptions: { deletedImageIds: string[]; remainingImageIds: string[]; newImageFiles: File[]; },
+  imageOptions: { 
+    deletedImageIds: string[]; 
+    remainingImageIds: string[]; 
+    newImageFiles: Array<{ file: File; tempId: string }>; 
+    imageOrder: Array<{ id: string; type: 'existing' | 'new' }>;
+  },
   audioOptions: { deleteExistingAudio: boolean; newAudioFile: Blob | File | null; }
 ) => {
   const supabase = createBrowserClient();
@@ -17,7 +22,7 @@ export const updatePost = async (
   if (!user) throw new Error('로그인이 필요합니다.');
 
   const uploadedNewImages = [];
-  for (const file of imageOptions.newImageFiles) {
+  for (const { file, tempId } of imageOptions.newImageFiles) {
     // 이미지 회전 교정 및 최적화 가공
     const { blob, width, height } = await processImage(file);
     
@@ -25,7 +30,13 @@ export const updatePost = async (
     const path = `post-images/${user.id}/${postId}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
     const publicUrl = await uploadFile(supabase, 'post-images', path, blob);
     
-    uploadedNewImages.push({ image_url: publicUrl, storage_path: path, width, height });
+    uploadedNewImages.push({ 
+      image_url: publicUrl, 
+      storage_path: path, 
+      width, 
+      height,
+      tempId // 서버에서 순서 매칭을 위해 전달
+    });
   }
 
   let newAudioInfo = null;
@@ -43,6 +54,7 @@ export const updatePost = async (
       category_id: data.category_id,
       deletedImageIds: imageOptions.deletedImageIds,
       newImages: uploadedNewImages,
+      imageOrder: imageOptions.imageOrder, // 전체 이미지 순서 정보
       deleteAudio: audioOptions.deleteExistingAudio,
       newAudio: newAudioInfo ? { audio_url: newAudioInfo.url, audio_storage_path: newAudioInfo.path } : null,
     }),

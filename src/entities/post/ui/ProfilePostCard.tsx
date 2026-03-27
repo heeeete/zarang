@@ -22,7 +22,7 @@ export const ProfilePostCard = ({ post, priority = false }: ProfilePostCardProps
       <Link
         href={`/posts/${post.id}`}
         prefetch={false}
-        className="group relative block w-full overflow-hidden bg-neutral-100 transition-all active:scale-[0.98]"
+        className="group relative block w-full overflow-hidden bg-neutral-100 transition-all"
       >
         {optimizedImage ? (
           <div style={{ paddingBottom: `${(1 / aspectRatio) * 100}%` }} className="relative w-full">
@@ -30,7 +30,7 @@ export const ProfilePostCard = ({ post, priority = false }: ProfilePostCardProps
               src={optimizedImage}
               alt="자랑거리 이미지"
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-200 group-hover:scale-105"
               sizes="140px"
               priority={priority}
             />

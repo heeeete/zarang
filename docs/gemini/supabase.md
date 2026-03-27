@@ -2,14 +2,17 @@
 
 ## Tables & Schema
 
+- **categories** : id, slug, label, sort_order, created_at
 - **profiles**: id (uuid, references auth.users), username, full_name, avatar_url, updated_at
-- **posts**: id, author_id, content, category, created_at, images (storage paths)
-- **comments**: id, post_id, author_id, content, created_at
-- **likes**: post_id, user_id (composite PK)
-- **notifications**: id, user_id, sender_id, type, post_id, is_read, created_at
+- **posts**: id, author_id, description, thumbnail_url, created_at, updated_at, category_id, audio_url, audio_storage_path, likes_count, comments_count, thumbnail_width, thumbnail_height
+- **post_images**: id, post_id, image_url, storage_path, sort_order, created_at, width, height
+- **post_likes**: post_id, user_id (composite PK), created_at
+- **notifications**: id, user_id, actor_id, type, post_id, comment_id, is_read, created_at
+- **messages**: id, room_id, sender_id, content, created_at
 - **chat_rooms**: id, created_at
-- **chat_participants**: room_id, user_id
-- **chat_messages**: id, room_id, sender_id, content, created_at
+- **chat_participants**: room_id, user_id, joined_at, last_read_at, deleted_at
+- **comments**: id, post_id, author_id, content, created_at, updated_at, parent_id
+- **follows**: follower_id, following_id, created_at
 
 ## RLS (Row Level Security)
 
