@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ImageIcon, Loader2Icon, ChevronDown } from 'lucide-react';
+import { ImageIcon, Loader2Icon, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/src/shared/ui/button';
 import { Textarea } from '@/src/shared/ui/textarea';
 import { toast } from 'sonner';
 import { CategoryDrawer } from '@/src/entities/post/ui/CategoryDrawer';
-import { Field, FieldLabel, FieldError, FieldGroup, FieldContent } from '@/src/shared/ui/field';
+import { Field, FieldError } from '@/src/shared/ui/field';
 
-// Entity Layer Imports
 import {
   postFormSchema,
   type PostFormInput,
@@ -22,7 +21,6 @@ import { SortableImageItem } from '@/src/entities/post/ui/SortableImageItem';
 import { VoiceRecorder } from '@/src/entities/post/ui/VoiceRecorder';
 import { createPost } from '../api/post-creation-api';
 
-// DnD Kit Imports
 import {
   DndContext,
   closestCenter,
@@ -30,7 +28,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -41,6 +39,59 @@ import {
 interface PostCreateFormProps {
   categories: Category[];
 }
+
+interface StepItemProps {
+  label: string;
+  active?: boolean;
+  done?: boolean;
+  required?: boolean;
+}
+
+const StepItem = ({ label, active, done, required }: StepItemProps) => {
+  return (
+    <div
+      className={[
+        'flex min-w-0 items-center gap-2 rounded-full border px-3 py-2 text-xs',
+        done
+          ? 'border-primary/20 bg-primary/5 text-foreground'
+          : active
+            ? 'border-foreground/15 bg-muted/50 text-foreground'
+            : 'border-border bg-background text-muted-foreground',
+      ].join(' ')}
+    >
+      <div
+        className={[
+          'flex size-5 shrink-0 items-center justify-center rounded-full',
+          done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+        ].join(' ')}
+      >
+        {done ? <Check className="size-3" /> : <div className="size-1.5 rounded-full bg-current" />}
+      </div>
+
+      <span className="truncate font-medium">{label}</span>
+
+      {required ? <span className="shrink-0 text-[10px] text-red-500">*</span> : null}
+    </div>
+  );
+};
+
+interface SectionProps {
+  title: string;
+  required?: boolean;
+  children: React.ReactNode;
+}
+
+const Section = ({ title, required, children }: SectionProps) => {
+  return (
+    <section className="rounded-2xl border bg-background p-4">
+      <div className="mb-3 flex items-center gap-1.5">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {required ? <span className="text-xs text-red-500">*</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+};
 
 export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -72,8 +123,13 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedCategoryId = watch('category_id');
-  const isKeyboardCategory =
-    categories.find((c) => c.id === selectedCategoryId)?.slug === 'keyboard';
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const isKeyboardCategory = selectedCategory?.slug === 'keyboard';
+
+  const imageDone = imageItems.length > 0;
+  const categoryDone = Boolean(selectedCategoryId);
+  const descriptionValue = watch('description');
+  const descriptionDone = Boolean(descriptionValue?.trim());
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -82,6 +138,7 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
     if (over && active.id !== over.id) {
       reorderImages(active.id as string, over.id as string);
     }
@@ -92,67 +149,79 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
       const imageFiles = imageItems.map((item) => item.file as File);
       const { id } = await createPost(data, imageFiles, audioBlob);
 
-      toast.success('자랑거리를 성공적으로 등록했어요!');
+      toast.success('게시글이 등록되었습니다.');
       router.replace(`/posts/${id}`);
 
-      // 페이지 이동이 완료될 때까지 onSubmit이 종료되지 않도록 하여 isSubmitting을 true로 유지합니다.
       await new Promise(() => {});
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '게시글을 작성하지 못했어요.');
+      toast.error(error instanceof Error ? error.message : '게시글을 작성하지 못했습니다.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-4">
-      <FieldGroup>
-        {/* Image Upload Area */}
-        <Field>
-          <FieldLabel className="sr-only">사진 ({imageItems.length}/10)</FieldLabel>
-          <FieldContent>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="grid grid-cols-3 gap-2">
-                <SortableContext
-                  items={imageItems.map((item) => item.id)}
-                  strategy={rectSortingStrategy}
-                >
-                  {imageItems.map((item, index) => (
-                    <SortableImageItem
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      onRemove={removeImage}
-                    />
-                  ))}
-                </SortableContext>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="mx-auto flex w-full max-w-[420px] flex-col gap-4 px-4 py-4"
+    >
+      <div className="rounded-2xl border bg-background p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <StepItem label="이미지" required active={!imageDone} done={imageDone} />
+          <StepItem
+            label="카테고리"
+            required
+            active={imageDone && !categoryDone}
+            done={categoryDone}
+          />
+          <StepItem label="설명" active={imageDone && categoryDone} done={descriptionDone} />
+        </div>
+      </div>
 
-                {imageItems.length < 10 && (
-                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100">
-                    <ImageIcon className="size-8 text-muted-foreground" />
-                    <span className="mt-1 text-[10px] font-medium text-muted-foreground">
-                      사진 추가 ({imageItems.length}/10)
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </DndContext>
-          </FieldContent>
-          {errors.images && <FieldError>{errors.images.message}</FieldError>}
-        </Field>
+      <Field>
+        <Section title="이미지" required>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-3 gap-2">
+              <SortableContext
+                items={imageItems.map((item) => item.id)}
+                strategy={rectSortingStrategy}
+              >
+                {imageItems.map((item, index) => (
+                  <SortableImageItem
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onRemove={removeImage}
+                  />
+                ))}
+              </SortableContext>
 
-        {/* Category */}
-        <Field>
-          <FieldLabel className="sr-only">카테고리</FieldLabel>
+              {imageItems.length < 10 && (
+                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 transition-colors hover:bg-muted/50">
+                  <ImageIcon className="size-5 text-muted-foreground" />
+                  <span className="mt-2 text-[11px] font-medium text-muted-foreground">
+                    {imageItems.length}/10
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </DndContext>
+
+          {errors.images ? <FieldError className="mt-2">{errors.images.message}</FieldError> : null}
+        </Section>
+      </Field>
+
+      <Field>
+        <Section title="카테고리" required>
           <Controller
             name="category_id"
             control={control}
@@ -166,60 +235,62 @@ export const PostCreateForm = ({ categories }: PostCreateFormProps) => {
                 showAllOption={false}
               >
                 <Button
-                  variant="outline"
-                  className="h-12 w-full justify-between px-4 font-medium text-neutral-700"
                   type="button"
+                  variant="outline"
+                  className="h-12 w-full justify-between rounded-xl px-4 text-sm font-medium"
                 >
-                  {field.value ? (
-                    categories.find((cat) => cat.id === field.value)?.label
-                  ) : (
-                    <span className="text-muted-foreground">카테고리를 선택해주세요</span>
-                  )}
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <span className="truncate">
+                    {field.value ? selectedCategory?.label : '카테고리 선택'}
+                  </span>
+                  <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </CategoryDrawer>
             )}
           />
-          {errors.category_id && <FieldError>{errors.category_id.message}</FieldError>}
-        </Field>
 
-        {/* Audio (ASMR) */}
-        {isKeyboardCategory && (
-          <Field>
-            <FieldLabel className="sr-only">타건음 (ASMR)</FieldLabel>
-            <FieldContent>
-              <VoiceRecorder onRecordingComplete={setAudioBlob} />
-            </FieldContent>
-          </Field>
-        )}
+          {errors.category_id ? (
+            <FieldError className="mt-2">{errors.category_id.message}</FieldError>
+          ) : null}
+        </Section>
+      </Field>
 
-        {/* Description */}
-        <Field>
-          <FieldLabel className="sr-only">자랑거리 설명</FieldLabel>
+      {isKeyboardCategory ? (
+        <Section title="타건음">
+          <VoiceRecorder onRecordingComplete={setAudioBlob} />
+        </Section>
+      ) : null}
+
+      <Field>
+        <Section title="설명">
           <Textarea
             {...register('description')}
-            placeholder="취향 아이템에 대해 들려주세요"
-            className="min-h-[180px] resize-none"
+            placeholder="설명을 입력해주세요"
+            className="min-h-[140px] resize-none rounded-xl"
           />
-          {errors.description && <FieldError>{errors.description.message}</FieldError>}
-        </Field>
-      </FieldGroup>
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={isSubmitting}
-        className="mt-4 h-12 w-full text-base font-bold shadow-lg shadow-primary/20"
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />
-            업로드 중...
-          </>
-        ) : (
-          '자랑하기'
-        )}
-      </Button>
+          {errors.description ? (
+            <FieldError className="mt-2">{errors.description.message}</FieldError>
+          ) : null}
+        </Section>
+      </Field>
+
+      <div className="sticky bottom-0 bg-background/95 pt-2 pb-1 backdrop-blur">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={isSubmitting}
+          className="h-12 w-full rounded-xl text-sm font-semibold"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+              업로드 중
+            </>
+          ) : (
+            '등록하기'
+          )}
+        </Button>
+      </div>
     </form>
   );
 };

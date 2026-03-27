@@ -12,11 +12,11 @@ export const ProfileEditButton = () => {
     <Button
       variant="outline"
       size="sm"
-      className="h-9 px-4 text-xs font-semibold rounded-full"
+      className="h-9 rounded-sm px-4 text-xs font-semibold"
       render={<Link href="/me/edit" />}
       nativeButton={false}
     >
-      <Settings className="h-3.5 w-3.5 mr-1.5" />
+      <Settings className="mr-1.5 h-3.5 w-3.5" />
       프로필 수정
     </Button>
   );
