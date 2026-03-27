@@ -50,8 +50,8 @@ export const ChatRoomClient = ({
     };
   }, [router]);
 
-  const onSendMessage = (content: string) => {
-    if (authUser) handleSend(content, authUser.id);
+  const onSendMessage = async (content: string) => {
+    if (authUser) await handleSend(content, authUser.id);
   };
 
   return (
