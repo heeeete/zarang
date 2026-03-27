@@ -28,13 +28,7 @@ export const SortableImageItem = ({ item, index, onRemove }: SortableImageItemPr
       style={style}
       className="relative aspect-square overflow-hidden rounded-lg border bg-white"
     >
-      <Image
-        src={item.url}
-        alt={`preview-${index}`}
-        fill
-        className="object-cover transition-transform duration-500 hover:scale-105"
-        sizes="200px"
-      />
+      <Image src={item.url} alt={`preview-${index}`} fill className="object-cover" sizes="200px" />
 
       {/* Drag Handle */}
       <div

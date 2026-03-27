@@ -52,27 +52,17 @@ export function NotificationBell() {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`bell-notifications-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          // 새로고침
-          loadNotifications(userId);
-        },
-      )
-      .subscribe();
+    const handleRefresh = () => {
+      loadNotifications(userId);
+    };
+
+    // NotificationListener에서 보내는 이벤트를 수신
+    window.addEventListener('zarang:refresh-notifications', handleRefresh);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('zarang:refresh-notifications', handleRefresh);
     };
-  }, [userId, supabase, loadNotifications]);
+  }, [userId, loadNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
