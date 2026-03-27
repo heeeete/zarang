@@ -43,43 +43,34 @@ export const MessageListClient = ({ userId, initialRooms }: MessageListClientPro
     setRooms(initialRooms);
   }, [initialRooms]);
 
-  // 실시간 구독: 내 채팅방들과 관련된 새 메시지가 올 때 목록 갱신
+  // 실시간 메시지 수신 시 목록 갱신 (NotificationListener에서 이벤트 수신)
   useEffect(() => {
-    const channel = supabase
-      .channel(`message-list-realtime-${userId}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'messages',
-        },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          
-          // 내가 보낸 메시지가 아닐 때만 목록 갱신
-          if (newMessage.sender_id !== userId) {
-            setRooms((prev) => 
-              prev.map((room) => {
-                if (room.id === newMessage.room_id) {
-                  return {
-                    ...room,
-                    last_message: newMessage,
-                    unread_count: (room.unread_count || 0) + 1,
-                  };
-                }
-                return room;
-              })
-            );
-          }
-        },
-      )
-      .subscribe();
+    const handleRefresh = (event: any) => {
+      const newMessage = event.detail as Message;
+      
+      // 내가 보낸 메시지가 아닐 때만 목록 갱신
+      if (newMessage.sender_id !== userId) {
+        setRooms((prev) => 
+          prev.map((room) => {
+            if (room.id === newMessage.room_id) {
+              return {
+                ...room,
+                last_message: newMessage,
+                unread_count: (room.unread_count || 0) + 1,
+              };
+            }
+            return room;
+          })
+        );
+      }
+    };
+
+    window.addEventListener('zarang:refresh-messages', handleRefresh);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('zarang:refresh-messages', handleRefresh);
     };
-  }, [supabase, userId]);
+  }, [userId]);
 
   // 최신 메시지 순으로 정렬 (주고받은 메시지 기준)
   const sortedRooms = [...rooms].sort((a, b) => {

@@ -12,6 +12,15 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
   const supabase = createClient();
   const refreshUnreadStatus = useMessageStore((state) => state.refreshUnreadStatus);
 
+  // 의존성 안정화를 위한 Ref 관리
+  const userIdRef = useRef(currentUserId);
+  const refreshRef = useRef(refreshUnreadStatus);
+
+  useEffect(() => {
+    userIdRef.current = currentUserId;
+    refreshRef.current = refreshUnreadStatus;
+  }, [currentUserId, refreshUnreadStatus]);
+
   // 초기 참가자 및 프로필 캐싱
   useEffect(() => {
     if (initialTargetProfile) {
@@ -33,7 +42,7 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
     }
   }, [roomId, currentUserId, supabase, refreshUnreadStatus]);
 
-  // 실시간 구독
+  // 실시간 구독 (roomId가 바뀔 때만 재연결)
   useEffect(() => {
     if (!roomId) return;
 
@@ -41,14 +50,20 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
       .channel(`chat-room-${roomId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` },
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `room_id=eq.${roomId}` 
+        },
         async (payload) => {
           const newMessage = payload.new as Message;
+          const currentId = userIdRef.current;
           
           // 새 메시지가 오면 읽음 처리 업데이트 (내가 보낸 게 아닐 때만)
-          if (currentUserId && newMessage.sender_id !== currentUserId) {
-            await updateLastReadAt(supabase, roomId, currentUserId);
-            refreshUnreadStatus(currentUserId);
+          if (currentId && newMessage.sender_id !== currentId) {
+            await updateLastReadAt(supabase, roomId, currentId);
+            refreshRef.current(currentId);
           }
 
           let sender = participantsCache.current[newMessage.sender_id];
@@ -74,7 +89,7 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomId, supabase, currentUserId]);
+  }, [roomId]); // [roomId]만 남겨서 완벽하게 고정
 
   return { messages, setMessages };
 };

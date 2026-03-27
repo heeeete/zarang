@@ -34,8 +34,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!user) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
 
   try {
-    const { description, category_id, deletedImageIds, newImages, deleteAudio, newAudio } =
-      await request.json();
+    const {
+      description,
+      category_id,
+      deletedImageIds,
+      newImages,
+      imageOrder,
+      deleteAudio,
+      newAudio,
+    } = await request.json();
     const { data: post, error: fetchError } = await supabase
       .from('posts')
       .select('author_id, audio_storage_path')
@@ -78,28 +85,55 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Image Insertion
+    const tempIdToRealId: Record<string, string> = {};
     if (newImages?.length) {
-      await adminSupabase.from('post_images').insert(
-        newImages.map((img: NewImageInput) => ({
-          post_id: id,
-          image_url: img.image_url,
-          storage_path: img.storage_path,
-          width: img.width,
-          height: img.height,
-          sort_order: 999,
-        })),
-      );
+      const { data: insertedImages } = await adminSupabase
+        .from('post_images')
+        .insert(
+          newImages.map((img: any) => ({
+            post_id: id,
+            image_url: img.image_url,
+            storage_path: img.storage_path,
+            width: img.width,
+            height: img.height,
+            sort_order: 999,
+          })),
+        )
+        .select('id, storage_path');
+
+      if (insertedImages) {
+        insertedImages.forEach((img) => {
+          const clientImg = newImages.find((ni: any) => ni.storage_path === img.storage_path);
+          if (clientImg) {
+            tempIdToRealId[clientImg.tempId] = img.id;
+          }
+        });
+      }
     }
 
-    // Re-order Images
-    const { data: allImages } = await adminSupabase
-      .from('post_images')
-      .select('id')
-      .eq('post_id', id)
-      .order('sort_order', { ascending: true });
-    if (allImages) {
-      for (let i = 0; i < allImages.length; i++) {
-        await adminSupabase.from('post_images').update({ sort_order: i }).eq('id', allImages[i].id);
+    // Re-order Images based on client request
+    if (imageOrder?.length) {
+      for (let i = 0; i < imageOrder.length; i++) {
+        const item = imageOrder[i];
+        const realId = item.type === 'existing' ? item.id : tempIdToRealId[item.id];
+        if (realId) {
+          await adminSupabase.from('post_images').update({ sort_order: i }).eq('id', realId);
+        }
+      }
+    } else {
+      // Fallback: 기존 방식 (순서 정보가 없는 경우)
+      const { data: allImages } = await adminSupabase
+        .from('post_images')
+        .select('id')
+        .eq('post_id', id)
+        .order('sort_order', { ascending: true });
+      if (allImages) {
+        for (let i = 0; i < allImages.length; i++) {
+          await adminSupabase
+            .from('post_images')
+            .update({ sort_order: i })
+            .eq('id', allImages[i].id);
+        }
       }
     }
 
