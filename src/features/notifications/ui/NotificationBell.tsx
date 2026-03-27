@@ -107,10 +107,15 @@ export function NotificationBell() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button id="notification-bell" variant="ghost" size="icon" className="relative h-9 w-9" />
+          <Button
+            id="notification-bell"
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9 hover:bg-white/20"
+          />
         }
       >
-        <Bell className="size-6" />
+        <Bell className="size-6" strokeWidth={1.4} />
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white" />
         )}

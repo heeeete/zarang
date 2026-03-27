@@ -45,9 +45,11 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-black: var(--black);
 }
 
 :root {
+  --black: #1a1c20;
   --background: oklch(1 0 0);
   --foreground: #17171b;
   --card: oklch(1 0 0);

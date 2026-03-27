@@ -36,7 +36,10 @@ export const CategoryDrawer = ({
     : '전체';
 
   const trigger = children || (
-    <button id="category-filter-trigger" className="flex w-fit items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95">
+    <button
+      id="category-filter-trigger"
+      className="flex w-fit items-center gap-1.5 rounded-sm bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-700 transition-all outline-none hover:bg-neutral-200 active:scale-95"
+    >
       {selectedCategoryLabel}
       <ChevronDown
         className={cn(
@@ -49,9 +52,7 @@ export const CategoryDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerTrigger asChild>
-        {trigger}
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent className="mx-auto max-w-[420px]">
         <DrawerHeader className="border-b pb-4">
           <DrawerTitle className="text-center text-base font-bold text-neutral-900">
