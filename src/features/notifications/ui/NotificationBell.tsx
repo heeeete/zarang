@@ -52,15 +52,15 @@ export function NotificationBell() {
   useEffect(() => {
     if (!userId) return;
 
-    const handleRefresh = () => {
+    const handleRefresh = (_event: Event) => {
       loadNotifications(userId);
     };
 
     // NotificationListener에서 보내는 이벤트를 수신
-    window.addEventListener('zarang:refresh-notifications', handleRefresh);
+    window.addEventListener('zarang:refresh-notifications', handleRefresh as EventListener);
 
     return () => {
-      window.removeEventListener('zarang:refresh-notifications', handleRefresh);
+      window.removeEventListener('zarang:refresh-notifications', handleRefresh as EventListener);
     };
   }, [userId, loadNotifications]);
 
