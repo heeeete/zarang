@@ -68,14 +68,53 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={roboto.variable}>
-      <body className="bg-neutral-100 font-sans antialiased">
+      <body className="bg-neutral-100 font-sans antialiased selection:bg-primary/10">
         <QueryProvider>
           <AuthProvider>
-            <div className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col bg-white shadow-xl">
-              <Header />
-              <main className="flex flex-1 flex-col pb-16">{children}</main>
-              <BottomNav />
+            <div className="flex justify-center">
+              {/* [PC 전용] 좌측 사이드 멘트 */}
+              <div className="fixed top-1/2 right-[calc(50%+240px)] hidden -translate-y-1/2 select-none lg:block">
+                <div className="flex flex-col gap-1.5 text-right">
+                  <span className="text-xs font-bold tracking-widest text-primary uppercase">
+                    Zarang Space
+                  </span>
+                  <h2 className="text-4xl leading-tight font-black tracking-tighter">
+                    당신의 특별한
+                    <br />
+                    <span className="text-orange-300">취향</span>을
+                    <br />
+                    공유해주세요
+                  </h2>
+                </div>
+              </div>
+
+              {/* 메인 모바일 레이아웃 컨테이너 */}
+              <div className="relative flex min-h-dvh w-full max-w-[420px] flex-col bg-white shadow-2xl shadow-neutral-200">
+                <Header />
+                <main className="flex flex-1 flex-col pb-16">{children}</main>
+                <BottomNav />
+              </div>
+
+              {/* [PC 전용] 우측 사이드 멘트 */}
+              <div className="fixed bottom-24 left-[calc(50%+240px)] hidden select-none lg:block">
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-2xl border border-white bg-white/50 p-5 shadow-sm backdrop-blur-md">
+                    <p className="text-sm font-bold text-neutral-600">앱 개발도 곧 할게요! 📱</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-neutral-400">
+                      더욱 쾌적하고 빠른 환경을 위해
+                      <br />
+                      열심히 준비하고 있어요.
+                      <br />
+                      조금만 더 기다려주세요.
+                    </p>
+                  </div>
+                  <p className="px-2 text-[10px] font-medium tracking-tight text-neutral-300">
+                    © 2026 ZARANG. All rights reserved.
+                  </p>
+                </div>
+              </div>
             </div>
+
             <Toaster position="top-center" />
             <NotificationListener />
           </AuthProvider>
