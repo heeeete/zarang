@@ -17,12 +17,13 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://zarang.co.kr'),
+  metadataBase: new URL('https://zarang.vercel.app'),
   title: {
     default: 'ZARANG - 취향 아이템 자랑 커뮤니티',
     template: '%s | ZARANG',
   },
-  description: '당신의 소중한 아이템과 취향을 공유해 보세요. ZARANG에서 나만의 특별한 취향 자랑을 즐기고 새로운 아이템을 발견해 보세요.',
+  description:
+    '당신의 소중한 아이템과 취향을 공유해 보세요. ZARANG에서 나만의 특별한 취향 자랑을 즐기고 새로운 아이템을 발견해 보세요.',
   keywords: ['자랑', '취향공유', '아이템자랑', '데스크셋업', 'ZARANG', 'ASMR'],
   authors: [{ name: 'mkoui' }],
   creator: 'mkoui',
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ZARANG - 취향 아이템 자랑 커뮤니티',
     description: '당신의 소중한 아이템과 취향을 공유해 보세요.',
-    url: 'https://zarang.co.kr',
+    url: 'https://zarang.vercel.app',
     siteName: 'ZARANG',
     locale: 'ko_KR',
     type: 'website',

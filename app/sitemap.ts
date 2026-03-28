@@ -6,7 +6,7 @@ import { createPublicClient } from '@/src/shared/lib/supabase/server';
  * 모든 게시글이 구글/네이버에 노출되도록 동적으로 URL을 구성합니다.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://zarang.co.kr';
+  const baseUrl = 'https://zarang.vercel.app';
   const supabase = createPublicClient();
 
   // 1. 모든 게시글 정보 조회 (최대 1000개 정도로 제한하거나 전체 조회)
