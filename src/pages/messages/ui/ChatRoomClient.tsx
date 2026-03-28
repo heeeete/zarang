@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/src/app/providers/AuthProvider';
+import { createClient } from '@/src/shared/lib/supabase/client';
 import { Message, ChatUserProfile } from '@/src/entities/chat/model/types';
+import { updateLastReadAt } from '@/src/entities/chat/api/update-last-read-at';
 import { useChatMessages } from '@/src/entities/chat/model/useChatMessages';
 import { useChatActions } from '@/src/features/chat/model/useChatActions';
 import { MessageInput } from '@/src/features/chat/ui/MessageInput';
@@ -32,6 +34,7 @@ export const ChatRoomClient = ({
   const router = useRouter();
   const { user: authUser } = useAuth();
   const [roomId, setRoomId] = useState<string | null>(initialRoomId);
+  const supabase = useMemo(() => createClient(), []);
 
   // 1. 메시지 상태 및 실시간 구독 (Entities)
   const { messages, loadPreviousMessages, isLoadingMore, hasMore } = useChatMessages(
@@ -47,19 +50,24 @@ export const ChatRoomClient = ({
   // 3. 스마트 스크롤 관리 (Pages/Lib)
   const { scrollRef, isReady } = useChatScroll(messages, authUser?.id);
 
-  // 4. 상단 스크롤 도달 시 이전 메시지 로드 (Infinite Scroll)
   const observerRef = useIntersectionObserver(loadPreviousMessages, {
     enabled: hasMore && !isLoadingMore,
-    rootMargin: '100px', // 상단 도달 전 미리 로딩
+    rootMargin: '100px',
   });
 
+  // 채팅방 이탈 시 읽음 상태 최종 갱신
   useEffect(() => {
     return () => {
+      if (roomId && authUser?.id && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        updateLastReadAt(supabase, roomId, authUser.id, lastMessage.created_at);
+      }
+      
       setTimeout(() => {
         router.refresh();
       }, 100);
     };
-  }, [router]);
+  }, [roomId, authUser?.id, messages, router, supabase]);
 
   const onSendMessage = async (content: string) => {
     if (authUser) await handleSend(content, authUser.id);

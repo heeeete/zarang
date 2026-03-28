@@ -66,11 +66,14 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
   // 진입 시 읽음 처리
   useEffect(() => {
     if (roomId && currentUserId) {
-      updateLastReadAt(supabase, roomId, currentUserId).then(() => {
+      // 초기 메시지 중 가장 최신 메시지의 시간을 가져옴
+      const lastMsgTime = messages.length > 0 ? messages[messages.length - 1].created_at : undefined;
+      
+      updateLastReadAt(supabase, roomId, currentUserId, lastMsgTime).then(() => {
         refreshUnreadStatus(currentUserId);
       });
     }
-  }, [roomId, currentUserId, supabase, refreshUnreadStatus]);
+  }, [roomId, currentUserId]); // messages 제거하여 무한 루프 방지
 
   // 실시간 구독 (roomId가 바뀔 때만 재연결)
   useEffect(() => {
@@ -91,8 +94,9 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
           const currentId = userIdRef.current;
           
           // 새 메시지가 오면 읽음 처리 업데이트 (내가 보낸 게 아닐 때만)
+          // [핵심] 메시지에 찍힌 created_at을 그대로 전달하여 시간 정밀도 문제 해결
           if (currentId && newMessage.sender_id !== currentId) {
-            await updateLastReadAt(supabase, roomId, currentId);
+            await updateLastReadAt(supabase, roomId, currentId, newMessage.created_at);
             refreshRef.current(currentId);
           }
 
