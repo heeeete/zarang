@@ -79,9 +79,7 @@ export default function RootLayout({
                     Zarang Space
                   </span>
                   <h2 className="text-4xl leading-tight font-black tracking-tighter">
-                    당신의 특별한
-                    <br />
-                    <span className="text-orange-300">취향</span>을
+                    당신의 <span className="text-orange-300">취향</span>을
                     <br />
                     공유해주세요
                   </h2>
