@@ -19,7 +19,8 @@ export const useExplorePosts = (
   const [loading, setLoading] = useState(false);
 
   const loadingRef = useRef(false);
-  const isInitialRender = useRef(true);
+  // firstSyncDone: 하이드레이션 이후 첫 필터 동기화가 완료되었는지 여부
+  const firstSyncDone = useRef(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -33,7 +34,13 @@ export const useExplorePosts = (
       if (loadingRef.current && !isReset) return;
 
       loadingRef.current = true;
-      setLoading(true);
+      
+      // 첫 진입 시(firstSyncDone이 false일 때) 발생하는 리셋 페칭은 
+      // 이미 서버 데이터(initialPosts)가 있으므로 로딩 상태를 트리거하지 않습니다.
+      const isInitialReset = isReset && !firstSyncDone.current;
+      if (!isInitialReset) {
+        setLoading(true);
+      }
 
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
@@ -50,6 +57,7 @@ export const useExplorePosts = (
           setPosts(newPosts);
           setPage(1);
           setHasMore(newPosts.length === PAGE_SIZE);
+          firstSyncDone.current = true; // 첫 동기화 완료 표시
         } else {
           setPosts((prev) => [...prev, ...newPosts]);
           setPage(pageNum + 1);
@@ -63,21 +71,15 @@ export const useExplorePosts = (
         setLoading(false);
       }
     },
-    [categoryId, keyword, supabase],
+    [categoryId, keyword, supabase], // posts.length 제거로 함수 인스턴스 안정화
   );
 
-  // 필터 변경 시 리셋 로직 최적화
+  // 필터 변경 시 리셋 로직
   useEffect(() => {
-    // 1. 첫 렌더링 시점(서버 데이터 사용 중)에는 아무것도 하지 않습니다.
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      return;
-    }
-
-    // 🚨 수정된 로직: 검색어를 지우거나 카테고리를 전체로 바꿨을 때(초기 상태로의 회귀)
-    // 서버 데이터를 다시 불러와서 피드를 초기화해야 합니다.
+    // 마운트 직후 한 번 실행하여 서버 데이터와 클라이언트 필터 상태를 맞춥니다.
+    // 이때 fetchPosts 내부에서 setLoading(true)를 생략하므로 깜빡임이 없습니다.
     fetchPosts(0, true);
-  }, [categoryId, keyword, fetchPosts]);
+  }, [fetchPosts]); // fetchPosts가 안정적이므로 무한 루프가 발생하지 않습니다.
 
   const fetchNextPage = useCallback(() => {
     if (!hasMore || loadingRef.current) return;
