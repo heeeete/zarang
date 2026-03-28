@@ -9,16 +9,18 @@ import { DetailPost } from '../model/types';
 export const fetchPostDetail = cache(async (id: string) => {
   // eslint-disable-next-line react-hooks/purity
   const startTime = Date.now();
-  
+
   const supabase = createPublicClient();
   const { data: post, error } = await supabase
     .from('posts')
-    .select(`
+    .select(
+      `
       *, author:profiles!posts_author_id_fkey(id, username, avatar_url),
       images:post_images(id, image_url, width, height),
       likes:post_likes(count),
       comments:comments(count)
-    `)
+    `,
+    )
     .eq('id', id)
     .order('sort_order', { foreignTable: 'post_images', ascending: true })
     .single();

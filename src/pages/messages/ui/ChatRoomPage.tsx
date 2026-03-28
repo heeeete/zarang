@@ -43,7 +43,7 @@ export const ChatRoomPage = async ({ params, searchParams }: ChatRoomPageProps) 
   // 3. 데이터 페칭
   try {
     if (roomId) {
-      initialMessages = await fetchMessages(supabase, roomId);
+      initialMessages = await fetchMessages(supabase, roomId, { limit: 30 });
     } else if (targetUserId) {
       // 신규 채팅 시작 시 상대방 프로필만 가져옴 (방은 생성하지 않음)
       const { data: profile } = await supabase
