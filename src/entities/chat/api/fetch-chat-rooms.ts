@@ -43,29 +43,15 @@ export const fetchChatRooms = async (supabase: SupabaseClient<Database>, userId:
 
   if (roomsError) throw roomsError;
 
-  const rawRooms = (roomsData as unknown as (ChatRoom & { messages: Message[] })[]) || [];
+  // 3. (최적화) RPC를 통해 모든 방의 안 읽은 메시지 개수를 한 번에 가져옵니다.
+  const { data: unreadCounts, error: unreadError } = await supabase.rpc('get_unread_counts', {
+    p_user_id: userId
+  });
 
-  // 정확한 안 읽은 개수를 가져오기 위한 추가 쿼리 (병렬 실행)
-  const unreadCounts = await Promise.all(
-    roomIds.map(async (roomId) => {
-      const roomInfo = rawRooms.find(r => r.id === roomId);
-      const myPart = roomInfo?.participants.find(p => p.user_id === userId);
-      const lastReadAt = myPart?.last_read_at || new Date(0).toISOString();
-      const deletedAt = myPart?.deleted_at || new Date(0).toISOString();
-      
-      // 안 읽은 개수는 마지막 읽은 시간 뿐만 아니라 삭제 시점도 고려해야 함
-      const thresholdTime = lastReadAt > deletedAt ? lastReadAt : deletedAt;
-      
-      const { count } = await supabase
-        .from('messages' as 'profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('room_id', roomId)
-        .neq('sender_id', userId)
-        .gt('created_at', thresholdTime);
-        
-      return { roomId, count: count || 0 };
-    })
-  );
+  if (unreadError) throw unreadError;
+
+  const rawRooms = (roomsData as unknown as (ChatRoom & { messages: Message[] })[]) || [];
+  const countsMap = new Map((unreadCounts as unknown as { room_id: string; unread_count: number }[]).map(c => [c.room_id, c.unread_count]));
 
   return rawRooms
     .filter(room => {
@@ -76,16 +62,13 @@ export const fetchChatRooms = async (supabase: SupabaseClient<Database>, userId:
       if (!deletedAt) return true;
       
       // 삭제한 적이 있다면, 마지막 메시지가 삭제된 이후에 왔을 때만 보여줌
-      // (혹은 방금 생성된 빈 방인 경우도 숨김)
       return room.messages && room.messages.length > 0 && room.messages[0].created_at > deletedAt;
     })
     .map(room => {
-      const unreadInfo = unreadCounts.find(uc => uc.roomId === room.id);
-
       return {
         ...room,
         last_message: room.messages?.[0],
-        unread_count: unreadInfo?.count || 0
+        unread_count: Number(countsMap.get(room.id) || 0)
       };
     });
 };

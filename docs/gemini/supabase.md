@@ -5,6 +5,8 @@
 - **categories** : id, slug, label, sort_order, created_at
 - **profiles**: id (uuid, references auth.users), username, full_name, avatar_url, updated_at
 - **posts**: id, author_id, description, thumbnail_url, created_at, updated_at, category_id, audio_url, audio_storage_path, likes_count, comments_count, thumbnail_width, thumbnail_height
+  - Index: `idx_posts_created_at_desc` (created_at DESC) - 홈 피드 최적화용
+  - Index: `idx_posts_author_id_created_at` (author_id, created_at DESC) - 프로필 페이지 최적화용
 - **post_images**: id, post_id, image_url, storage_path, sort_order, created_at, width, height
 - **post_likes**: post_id, user_id (composite PK), created_at
 - **notifications**: id, user_id, actor_id, type, post_id, comment_id, is_read, created_at

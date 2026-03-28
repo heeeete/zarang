@@ -40,6 +40,9 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+    '**/__tests__/**',
   ]),
   eslintConfigPrettier,
 ]);
