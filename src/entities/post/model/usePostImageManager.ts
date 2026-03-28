@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import { toast } from 'sonner';
 import { PostFormInput } from './schema';
+import { createThumbnail } from '@/src/shared/lib/utils/image-processing';
 
 export interface PostImageItem {
   id: string;
@@ -27,22 +28,38 @@ export const usePostImageManager = (
     setValue('images', items as unknown as PostFormInput['images'], { shouldValidate: true });
   }, [setValue]);
 
-  const addImages = useCallback((files: File[]) => {
+  const addImages = useCallback(async (files: File[]) => {
     if (imageItems.length + files.length > 10) {
       toast.error('사진은 최대 10장까지 올릴 수 있어요.');
       return;
     }
 
-    const newItems: PostImageItem[] = files.map((file) => ({
-      id: uuidv4(),
-      url: URL.createObjectURL(file),
-      file,
-      type: 'new',
-    }));
+    const loadToast = toast.loading('이미지를 최적화하고 있어요...');
 
-    const updated = [...imageItems, ...newItems].slice(0, 10);
-    setImageItems(updated);
-    syncWithForm(updated);
+    try {
+      // 대용량 이미지를 위해 병렬로 썸네일 생성
+      const newItems: PostImageItem[] = await Promise.all(
+        files.map(async (file) => {
+          // 미리보기용은 300px 정도로 리사이징된 썸네일 사용
+          const thumbnailBoxUrl = await createThumbnail(file, 300);
+          return {
+            id: uuidv4(),
+            url: thumbnailBoxUrl,
+            file, // 원본 파일은 업로드용으로 유지
+            type: 'new',
+          };
+        })
+      );
+
+      const updated = [...imageItems, ...newItems].slice(0, 10);
+      setImageItems(updated);
+      syncWithForm(updated);
+      toast.dismiss(loadToast);
+    } catch (error) {
+      console.error('Thumbnail generation error:', error);
+      toast.error('이미지를 처리하지 못했어요.');
+      toast.dismiss(loadToast);
+    }
   }, [imageItems, syncWithForm]);
 
   const removeImage = useCallback((id: string) => {
@@ -51,8 +68,6 @@ export const usePostImageManager = (
 
     if (target.type === 'existing') {
       setDeletedImageIds((prev) => [...prev, id]);
-    } else {
-      URL.revokeObjectURL(target.url);
     }
 
     const updated = imageItems.filter((item) => item.id !== id);

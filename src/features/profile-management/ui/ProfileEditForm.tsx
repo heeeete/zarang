@@ -13,6 +13,7 @@ import { Textarea } from '@/src/shared/ui/textarea';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/src/shared/ui/field';
 import { toast } from 'sonner';
 import { getOptimizedImageUrl } from '@/src/shared/lib/utils';
+import { createThumbnail } from '@/src/shared/lib/utils/image-processing';
 
 const profileSchema = z.object({
   username: z
@@ -56,15 +57,25 @@ export const ProfileEditForm = ({ profile }: ProfileEditFormProps) => {
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('이미지 크기는 2MB를 넘을 수 없어요.');
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error('이미지 크기는 4MB를 넘을 수 없어요.');
         return;
       }
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
+
+      const loadToast = toast.loading('이미지를 최적화하고 있어요...');
+      try {
+        const previewUrl = await createThumbnail(file, 200);
+        setAvatarFile(file);
+        setAvatarPreview(previewUrl);
+        toast.dismiss(loadToast);
+      } catch (error) {
+        console.error('Thumbnail error:', error);
+        toast.error('이미지를 처리하지 못했어요.');
+        toast.dismiss(loadToast);
+      }
     }
   };
 
