@@ -42,9 +42,16 @@ export async function PATCH(request: NextRequest) {
         .eq('id', user.id)
         .single();
 
-      // 새 이미지 업로드 및 WebP 변환
+      // 새 이미지 업로드 및 WebP 변환 + 리사이징 추가 (용량 및 성능 최적화)
       const rawBuffer = Buffer.from(await avatarFile.arrayBuffer());
-      const processedBuffer = await sharp(rawBuffer).rotate().webp({ quality: 80 }).toBuffer();
+      const processedBuffer = await sharp(rawBuffer)
+        .rotate()
+        .resize(400, 400, { 
+          fit: 'cover',
+          withoutEnlargement: true // 원본이 작은 경우 억지로 키우지 않음
+        }) 
+        .webp({ quality: 80 })
+        .toBuffer();
       
       const fileName = `${user.id}_${uuidv4()}.webp`;
       const storagePath = `avatars/${fileName}`;
@@ -66,8 +73,10 @@ export async function PATCH(request: NextRequest) {
 
       // 기존 이미지 삭제 (있다면)
       if (oldProfile?.avatar_url && oldProfile.avatar_url.includes('avatars/')) {
-        const oldPath = oldProfile.avatar_url.split('public/').pop();
+        // publicUrl에서 버킷명(post-images/) 이후의 실제 파일 경로만 추출합니다.
+        const oldPath = oldProfile.avatar_url.split('post-images/').pop();
         if (oldPath) {
+          // remove() 함수는 해당 버킷 내부의 경로만 인자로 받습니다.
           await adminSupabase.storage.from('post-images').remove([oldPath]);
         }
       }
