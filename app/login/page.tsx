@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import { LoginPage } from '@/src/pages/login/ui/LoginPage';
+import { redirect } from 'next/navigation';
+import { getServerUserId } from '@/src/shared/lib/supabase/server-auth';
 
 export const metadata: Metadata = {
   title: 'ZARANG 시작하기',
@@ -10,4 +12,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default LoginPage;
+export default async function Page() {
+  const userId = await getServerUserId();
+
+  // 이미 로그인된 상태라면 홈으로 리다이렉트 (로그인 페이지 재접근 방지)
+  if (userId) {
+    redirect('/');
+  }
+
+  return <LoginPage />;
+}

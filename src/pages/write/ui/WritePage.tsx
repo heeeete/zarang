@@ -19,7 +19,7 @@ export const WritePage = async () => {
   const categories = await fetchCategories();
 
   return (
-    <div className="flex flex-col bg-white">
+    <div className="flex flex-col bg-white pb-[env(safe-area-inset-bottom)]">
       <SubHeader title="게시글 작성" />
 
       <PostCreateForm categories={categories} />
