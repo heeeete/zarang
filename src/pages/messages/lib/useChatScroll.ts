@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
  * - 첫 진입 시 최하단 이동
  * - 메시지 추가 시 스크롤 위치 관리
  */
-export const useChatScroll = <T extends { id: string | number }>(
+export const useChatScroll = <T extends { id: string | number; sender_id: string }>(
   messages: T[], 
   currentUserId?: string
 ) => {
@@ -26,7 +26,11 @@ export const useChatScroll = <T extends { id: string | number }>(
     if (isInitialScrollRef.current) {
       container.scrollTop = container.scrollHeight;
       isInitialScrollRef.current = false;
-      setIsReady(true);
+      
+      // useEffect 내 동기 setState로 인한 cascading render 방지를 위해 requestAnimationFrame 사용
+      requestAnimationFrame(() => {
+        setIsReady(true);
+      });
     } 
     // 2. 데이터 업데이트 시
     else if (messages.length > prevMessagesRef.current.length) {
@@ -41,7 +45,7 @@ export const useChatScroll = <T extends { id: string | number }>(
       } else {
         // [새 메시지 수신]
         // 내가 보냈거나 바닥 근처일 때만 하단으로 부드럽게 이동합니다.
-        const lastMessage = messages[messages.length - 1] as any;
+        const lastMessage = messages[messages.length - 1];
         const isMyMessage = lastMessage?.sender_id === currentUserId;
         const isNearBottom = container.scrollTop + container.clientHeight >= prevScrollHeightRef.current - 150;
 
