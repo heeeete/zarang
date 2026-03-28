@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/write', '/me', '/messages', '/api', '/auth', '/login'],
     },
-    sitemap: 'https://zarang.co.kr/sitemap.xml',
+    sitemap: 'https://zarang.vercel.app/sitemap.xml',
   };
 }
