@@ -80,7 +80,11 @@ export const PostDetailsPage = async ({ params }: PostDetailsPageProps) => {
               <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-neutral-400 uppercase">
                 <Mic className="size-3" /> ASMR SOUND
               </p>
-              <audio src={post.audio_url} controls className="h-8 w-full" />
+              <audio controls className="h-8 w-full outline-none">
+                <source src={post.audio_url} type="audio/webm" />
+                <source src={post.audio_url} type="audio/ogg" />
+                브라우저가 오디오 재생을 지원하지 않습니다.
+              </audio>
             </div>
           )}
 

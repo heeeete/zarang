@@ -27,7 +27,10 @@ export const PostHeaderActions = ({ postId, authorId }: PostHeaderActionsProps) 
             <>
               {isAuthor ? (
                 <>
-                  <Badge variant="secondary" className="px-2.5 py-0.5 font-medium italic opacity-50">
+                  <Badge
+                    variant="secondary"
+                    className="px-2.5 py-0.5 font-medium italic opacity-50"
+                  >
                     내 게시물
                   </Badge>
                   <PostActionMenu postId={postId} />
@@ -42,4 +45,3 @@ export const PostHeaderActions = ({ postId, authorId }: PostHeaderActionsProps) 
     />
   );
 };
-
