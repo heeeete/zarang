@@ -81,9 +81,13 @@ export const ExploreFeed = ({
 
   return (
     <div className="flex min-h-full flex-col">
-      {/* 상단 검색바 & 카테고리 필터 버튼 */}
-      <div className="sticky top-0 z-40 flex flex-col gap-2.5 border-b bg-white/95 px-4 py-3 backdrop-blur-sm">
+      {/* 상단 검색바: 스크롤 시 자연스럽게 위로 사라짐 */}
+      <div className="bg-white px-4 pt-3 pb-1">
         <ExploreSearchBar value={searchKeyword} onChange={setSearchKeyword} />
+      </div>
+
+      {/* 카테고리 필터 버튼: 상단에 고정 (Sticky) */}
+      <div className="sticky top-0 z-40 bg-white/95 px-4 py-2.5 backdrop-blur-sm">
         <CategoryDrawer
           categories={categories}
           selected={selectedCategoryId}
