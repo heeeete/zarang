@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import PostSkeleton from '@/src/entities/post/ui/PostSkeleton';
+import { Loader2 } from 'lucide-react';
 
 interface InfiniteScrollTriggerProps {
   loading: boolean;
@@ -10,15 +10,17 @@ interface InfiniteScrollTriggerProps {
 export const InfiniteScrollTrigger = forwardRef<HTMLDivElement, InfiniteScrollTriggerProps>(
   ({ loading, hasMore, postsCount }, ref) => {
     return (
-      <div ref={ref} className="justify-center">
-        {/* 첫 페이지 데이터가 로드된 이후(postsCount > 0)에만 추가 로딩 UI를 보여줍니다. */}
-        {loading && postsCount > 0 && (
-          <div className="py-4">
-            <PostSkeleton />
+      <div ref={ref} className="flex min-h-[100px] flex-col items-center justify-center">
+        {/* 추가 데이터 로딩 시 심플한 스피너 표시 */}
+        {loading && hasMore && (
+          <div className="py-8">
+            <Loader2 className="size-6 animate-spin text-muted-foreground/50" />
           </div>
         )}
+        
+        {/* 모든 데이터를 불러왔을 때 표시 */}
         {!hasMore && postsCount > 0 && (
-          <p className="py-10 text-center text-xs text-muted-foreground italic">
+          <p className="py-10 text-center text-[11px] text-muted-foreground/60 italic tracking-tight">
             더 많이 자랑해주세요
           </p>
         )}

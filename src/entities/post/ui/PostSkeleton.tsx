@@ -14,12 +14,12 @@ export default function PostSkeleton({ columns = 2 }: PostSkeletonProps) {
   ];
 
   return (
-    <div className="flex gap-[1px]">
+    <div className="flex gap-[3px]">
       {Array.from({ length: columns }).map((_, colIndex) => (
-        <div key={`col-${colIndex}`} className="flex flex-1 flex-col gap-[1px]">
+        <div key={`col-${colIndex}`} className="flex flex-1 flex-col gap-[3px]">
           {/* 정의된 프리셋이 있으면 사용하고, 없으면 첫 번째 프리셋을 순환하여 사용합니다. */}
           {heightPresets[colIndex % heightPresets.length].map((height, i) => (
-            <div key={`skeleton-${colIndex}-${i}`} className="flex flex-col gap-[1px]">
+            <div key={`skeleton-${colIndex}-${i}`} className="flex flex-col gap-[3px]">
               <div className="animate-pulse bg-neutral-100" style={{ height: `${height}px` }} />
             </div>
           ))}
