@@ -34,6 +34,7 @@ export const SortableImageItem = ({ item, index, onRemove }: SortableImageItemPr
       <div
         {...attributes}
         {...listeners}
+        style={{ touchAction: 'none' }} // 모바일 스크롤 방지 핵심 로직
         className="absolute top-1 left-1 z-10 cursor-grab rounded-md bg-black/30 p-1 text-white active:cursor-grabbing"
       >
         <GripVertical className="size-4" />
