@@ -457,6 +457,13 @@ export type Database = {
           width: number
         }[]
       }
+      get_unread_counts: {
+        Args: { p_user_id: string }
+        Returns: {
+          room_id: string
+          unread_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

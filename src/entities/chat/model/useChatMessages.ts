@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/src/shared/lib/supabase/client';
 import { Message, ChatUserProfile } from './types';
 import { updateLastReadAt } from '../api/update-last-read-at';
 import { useMessageStore } from '@/src/entities/message/model/messageStore';
+import { fetchMessages } from '../api/fetch-messages';
 
 export const useChatMessages = (roomId: string | null, initialMessages: Message[], initialTargetProfile?: ChatUserProfile | null, currentUserId?: string) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialMessages.length >= 30);
+  
   const participantsCache = useRef<Record<string, ChatUserProfile>>({});
   const supabase = createClient();
   const refreshUnreadStatus = useMessageStore((state) => state.refreshUnreadStatus);
@@ -32,6 +36,32 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
       }
     });
   }, [initialMessages, initialTargetProfile]);
+
+  // 이전 메시지 더 불러오기
+  const loadPreviousMessages = useCallback(async () => {
+    if (!roomId || isLoadingMore || !hasMore || messages.length === 0) return;
+
+    setIsLoadingMore(true);
+    try {
+      const firstMessage = messages[0];
+      const previousMessages = await fetchMessages(supabase, roomId, {
+        lastCreatedAt: firstMessage.created_at,
+        limit: 30
+      });
+
+      if (previousMessages.length < 30) {
+        setHasMore(false);
+      }
+
+      if (previousMessages.length > 0) {
+        setMessages((prev) => [...previousMessages, ...prev]);
+      }
+    } catch (error) {
+      console.error('이전 메시지 로딩 실패:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [roomId, isLoadingMore, hasMore, messages, supabase]);
 
   // 진입 시 읽음 처리
   useEffect(() => {
@@ -91,5 +121,5 @@ export const useChatMessages = (roomId: string | null, initialMessages: Message[
     };
   }, [roomId]); // [roomId]만 남겨서 완벽하게 고정
 
-  return { messages, setMessages };
+  return { messages, setMessages, loadPreviousMessages, isLoadingMore, hasMore };
 };
