@@ -22,6 +22,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-full flex-col">
+      <h1 className="sr-only">자랑 (ZARANG) - 당신의 취향과 아이템을 자랑하는 커뮤니티</h1>
       <HomeFeed initialPosts={initialPosts} isAuthenticated={!!userId} />
     </div>
   );

@@ -19,11 +19,11 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zarang.vercel.app'),
   title: {
-    default: 'ZARANG - 취향 아이템 자랑 커뮤니티',
-    template: '%s | ZARANG',
+    default: '자랑 (ZARANG) - 취향 아이템 자랑 커뮤니티',
+    template: '%s | 자랑 (ZARANG)',
   },
   description:
-    '당신의 소중한 아이템과 취향을 공유해 보세요. ZARANG에서 나만의 특별한 취향 자랑을 즐기고 새로운 아이템을 발견해 보세요.',
+    '당신의 소중한 아이템과 취향을 공유해 보세요. 자랑(ZARANG)에서 나만의 특별한 취향 자랑을 즐기고 새로운 아이템을 발견해 보세요.',
   keywords: ['자랑', '취향공유', '아이템자랑', '데스크셋업', 'ZARANG', 'ASMR'],
   authors: [{ name: 'mkoui' }],
   creator: 'mkoui',
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: 'ZARANG - 취향 아이템 자랑 커뮤니티',
+    title: '자랑 (ZARANG) - 취향 아이템 자랑 커뮤니티',
     description: '당신의 소중한 아이템과 취향을 공유해 보세요.',
     url: 'https://zarang.vercel.app',
-    siteName: 'ZARANG',
+    siteName: '자랑 (ZARANG)',
     locale: 'ko_KR',
     type: 'website',
     images: [
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'ZARANG - 취향 아이템 자랑 커뮤니티',
+        alt: '자랑 (ZARANG) - 취향 아이템 자랑 커뮤니티',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ZARANG - 취향 아이템 자랑 커뮤니티',
+    title: '자랑 (ZARANG) - 취향 아이템 자랑 커뮤니티',
     description: '당신의 소중한 아이템과 취향을 공유해 보세요.',
     images: ['/og-image.jpg'],
   },
@@ -66,8 +66,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 구조화 데이터 (JSON-LD): 구글에게 사이트 이름이 '자랑'임을 명시적으로 알립니다.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: '자랑',
+    alternateName: ['ZARANG', '자랑 (ZARANG)'],
+    url: 'https://zarang.vercel.app',
+  };
+
   return (
     <html lang="ko" className={roboto.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="bg-neutral-100 font-sans antialiased selection:bg-primary/10">
         <QueryProvider>
           <AuthProvider>
