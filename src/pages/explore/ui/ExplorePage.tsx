@@ -20,6 +20,7 @@ export const ExplorePage = async () => {
 
   return (
     <div className="flex min-h-full flex-col bg-white">
+      <h1 className="sr-only">취향 탐색 | 자랑 (ZARANG) - 다른 사람들의 특별한 취향과 아이템을 구경해 보세요</h1>
       <ExploreFeed categories={categories} initialPosts={initialPosts} isAuthenticated={!!userId} />
     </div>
   );
