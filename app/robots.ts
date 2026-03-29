@@ -5,7 +5,6 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/write', '/me', '/messages', '/api', '/auth', '/login'],
     },
     sitemap: 'https://zarang.vercel.app/sitemap.xml',
   };
