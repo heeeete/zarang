@@ -25,10 +25,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${post.author?.username || '알 수 없는 사용자'}님의 자랑거리 - ZARANG`;
+  // 게시글 본문(description)의 일부를 타이틀로 사용하여 인덱싱 품질을 높입니다.
+  const contentSnippet = post.description?.slice(0, 50).trim() || '취향 아이템 자랑';
+  const username = post.author?.username || '알 수 없는 사용자';
+  const title = `${contentSnippet} | ${username}님의 자랑거리 - ZARANG`;
+
   const description = post.description
-    ? post.description.slice(0, 150)
-    : 'ZARANG에서 취향 아이템을 구경해 보세요.';
+    ? post.description.slice(0, 160).replace(/\n/g, ' ').trim()
+    : '당신의 취향 아이템을 공유하고 새로운 영감을 얻어보세요. ZARANG에서 더 많은 아이템을 구경할 수 있습니다.';
 
   // 썸네일 이미지가 있으면 OG 이미지로 사용합니다.
   const ogImage = post.thumbnail_url || undefined;
