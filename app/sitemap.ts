@@ -9,10 +9,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://zarang.vercel.app';
   const supabase = createPublicClient();
 
-  // 1. 모든 게시글 정보 조회 (최대 1000개 정도로 제한하거나 전체 조회)
+  // 1. 모든 게시글 정보 조회 (이미지 포함)
   const { data: posts } = await supabase
     .from('posts')
-    .select('id, updated_at')
+    .select('id, updated_at, thumbnail_url')
     .order('created_at', { ascending: false });
 
   const postUrls = (posts || []).map((post) => ({
@@ -20,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(post.updated_at),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
+    images: post.thumbnail_url ? [post.thumbnail_url] : [],
   }));
 
   // 2. 정적 루트 페이지
