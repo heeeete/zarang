@@ -6,7 +6,7 @@
 
 - **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4
 - **Backend**: Supabase (Auth, Postgres, Storage, Realtime, RPC)
-- **Libraries**: TanStack Query v5, Zustand, dnd-kit, Zod, sharp
+- **Libraries**: React Hook Form (RHF), Zustand, dnd-kit, Zod, sharp
 - **Testing**: Jest, React Testing Library
 
 ## 🚀 핵심 기능 및 기술적 최적화
@@ -25,7 +25,7 @@
 - **클라이언트 사이드 전처리 (`processImage`)**:
   - **EXIF 자동 보정**: `createImageBitmap`의 `imageOrientation` 옵션을 활용해 기기별 사진 회전 문제를 업로드 전 브라우저에서 즉시 해결
   - **화질 및 용량 최적화**: `image/jpeg` 포맷 및 **품질 0.8(80%)** 설정을 적용하여, 원본의 시각적 품질을 유지하면서도 업로드 용량을 획기적으로 줄여 네트워크 비용 절감
-- **Canvas API 기반 메인 스레드 최적화**:
+- **Canvas API 기반 미리보기 최적화**:
   - **리사이징 미리보기 (`createThumbnail`)**: 고해상도 원본 이미지를 브라우저에 그대로 렌더링할 때 발생하는 UI 프리징 및 메모리 누수를 방지하기 위해, `Canvas`를 활용해 가벼운 썸네일(maxWidth: 300px)로 즉시 변환하여 출력
   - **부드러운 리사이징**: `imageSmoothingQuality: 'high'` 옵션을 적용하여 리사이징 시 발생하는 화질 저하 및 계단 현상을 방지
 - **병렬 업로드 프로세스**: `Promise.all`을 활용해 다중 이미지와 오디오 파일을 병렬로 처리하여 전체 등록 시간을 단축하고, `dnd-kit`을 통한 직관적인 정렬 기능 제공
@@ -46,6 +46,7 @@
 
 - **FSD (Feature-Sliced Design)**: 레이어 기반의 엄격한 관심사 분리를 통해 코드 재사용성을 높이고 비즈니스 로직의 응집도 강화
 - **타입 안정성**: `any` 타입을 배제한 인터페이스 설계와 Supabase 타입 자동 생성(`src/shared/types/database.ts`)을 통해 런타임 안정성 확보
+- **폼 관리 (React Hook Form)**: 비제어 컴포넌트 기반의 `RHF`를 활용하여 폼 제출 시 불필요한 리렌더링을 최소화하고 유효성 검사 로직 통합
 
 ## 📂 Architecture (FSD)
 
